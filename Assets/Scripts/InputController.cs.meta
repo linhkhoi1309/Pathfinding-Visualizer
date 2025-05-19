@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 2a698b340713f69469edcc0ca5acd3a8
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - tilemap: {instanceID: 0}
+  - startTileSprite: {instanceID: 0}
+  - endTileSprite: {instanceID: 0}
+  - visitedTileSprite: {instanceID: 0}
+  - obstacleTileSprite: {instanceID: 0}
+  - pathTileSprite: {instanceID: 0}
+  - currentTileSprite: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
