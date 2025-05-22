@@ -1,6 +1,7 @@
+using System;
 using UnityEngine;
 
-public class Node
+public class Node : IComparable<Node>
 {
     public Vector2Int graphPosition;
     public Node parentNode;
@@ -9,5 +10,10 @@ public class Node
     {
         this.graphPosition = graphPosition;
         this.parentNode = null;
+    }
+
+    public int CompareTo(Node other)
+    {
+        throw new NotImplementedException();
     }
 }

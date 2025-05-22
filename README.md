@@ -1,2 +1,2 @@
 # Pathfinding-Visualizer
-Pathfinding Visualizer made by Unity
+Pathfinding Visualizer made with Unity

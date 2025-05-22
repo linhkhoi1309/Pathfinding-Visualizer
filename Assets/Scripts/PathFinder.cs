@@ -16,20 +16,27 @@ public enum PathfindingAlgo
 }
 public class PathFinder : MonoBehaviour
 {
-    [HideInInspector] public bool hasCompleted;
-    [HideInInspector] public PathfindingAlgo pathfindingAlgo;
     GraphController graphController;
+    LineRenderer lineRenderer;
     Node startNode = null;
     Node endNode = null;
-    public float delayForEachIteration = 0.1f;
+    public float delayForEachIteration = 0f;
+
+    [HideInInspector] public bool hasCompleted = false;
+    [HideInInspector] public PathfindingAlgo pathfindingAlgo;
+    [HideInInspector] public int numOfNodesExplored = 0;
+    [HideInInspector] public int totalCost = 0;
+    [HideInInspector] public float processingTime = 0f;
 
     private void Awake()
     {
         graphController = FindObjectOfType<GraphController>();
+        lineRenderer = GetComponent<LineRenderer>();
     }
 
     public void InitializePathfinder(PathfindingAlgo pathfindingAlgo)
     {
+        ResetPathFindingConfigs();
         startNode = graphController.startNode;
         endNode = graphController.endNode;
         if (startNode == null || endNode == null)
@@ -66,18 +73,21 @@ public class PathFinder : MonoBehaviour
                 StartCoroutine(BidirectionalSearch());
                 break;
         }
-        
     }
 
     private IEnumerator DFS()
     {
+        float startTime = Time.realtimeSinceStartup;
+        yield return null;
         Stack<Node> frontier = new Stack<Node>();
         HashSet<Node> visited = new HashSet<Node>();
+        List<Node> path = new List<Node>();
         frontier.Push(startNode);
         startNode.parentNode = null;
         while (frontier.Count > 0)
         {
             Node currentNode = frontier.Pop();
+            numOfNodesExplored++;
             if (currentNode != startNode && currentNode != endNode)
                 graphController.ColorNode(currentNode.graphPosition, graphController.visitedTileSprite);
             if (currentNode == endNode)
@@ -85,11 +95,14 @@ public class PathFinder : MonoBehaviour
                 Node pathNode = endNode.parentNode;
                 while (pathNode != null && pathNode != startNode)
                 {
+                    totalCost += 1;
                     graphController.ColorNode(pathNode.graphPosition, graphController.pathTileSprite);
+                    path.Add(pathNode);
                     pathNode = pathNode.parentNode;
                     yield return new WaitForSeconds(delayForEachIteration);
                 }
                 hasCompleted = true;
+                DrawPathLine(path);
                 yield break;
             }
             visited.Add(currentNode);
@@ -103,6 +116,7 @@ public class PathFinder : MonoBehaviour
                         graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
                 }
             }
+            processingTime = Time.realtimeSinceStartup - startTime;
             yield return new WaitForSeconds(delayForEachIteration);
         }
     }
@@ -141,10 +155,32 @@ public class PathFinder : MonoBehaviour
     {
         yield return null;
     }
-    
-    public void ResetPathfinding()
+
+    public void ResetPathFinding()
     {
-        hasCompleted = false;
+        ResetPathFindingConfigs();
         graphController.ResetGraph();
+    }
+
+    private void ResetPathFindingConfigs()
+    {
+        lineRenderer.positionCount = 0;
+        hasCompleted = false;
+        numOfNodesExplored = 0;
+        totalCost = 0;
+        processingTime = 0f;
+    }
+
+    private void DrawPathLine(List<Node> path)
+    {
+        Vector3[] positions = new Vector3[path.Count];
+        for (int i = 0; i < path.Count; i++)
+        {
+            Vector3Int cellPos = (Vector3Int)(graphController.gridLowerBound + path[i].graphPosition);
+            Vector3 worldPos = graphController.tilemap.GetCellCenterWorld(cellPos);
+            positions[i] = worldPos;
+        }
+        lineRenderer.positionCount = positions.Length;
+        lineRenderer.SetPositions(positions);
     }
 }

@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.IO;
 public class UIController : MonoBehaviour
 {
     [SerializeField] private Button resetButton;
@@ -12,7 +11,6 @@ public class UIController : MonoBehaviour
     [SerializeField] private TMP_Dropdown algorithmDropdown;
     [SerializeField] private AudioClip buttonClickSound;
     PathFinder pathFinder;
-
     PathfindingAlgo pathfindingAlgo;
 
     private void Awake()
@@ -25,21 +23,18 @@ public class UIController : MonoBehaviour
 
     private void OnResetButtonClicked()
     {
-        Debug.Log("Reset button clicked");
         AudioSource.PlayClipAtPoint(buttonClickSound, Camera.main.transform.position);
-        pathFinder.ResetPathfinding();
+        pathFinder.ResetPathFinding();
     }
 
     private void OnVisualizeButtonClicked()
     {
-        Debug.Log("Visualize button clicked");
         AudioSource.PlayClipAtPoint(buttonClickSound, Camera.main.transform.position);
         pathFinder.InitializePathfinder(pathfindingAlgo);
     }
 
     private void OnAlgorithmDropdownSelected(int index)
     {
-        Debug.Log("Algorithm selected: " + algorithmDropdown.options[index].text);
         switch (index)
         {
             case 0:
@@ -69,7 +64,30 @@ public class UIController : MonoBehaviour
         }
     }
 
-    private void Update() {
-        
+    private void Update()
+    {
+        UpdateUI();
+    }
+
+    public void UpdateUI()
+    {
+        UpdateNumOfNodesExplored(pathFinder.numOfNodesExplored);
+        UpdateProcessingTime(pathFinder.processingTime);
+        UpdateTotalCost(pathFinder.totalCost);
+    }
+
+    private void UpdateProcessingTime(float processingTime)
+    {
+        processingTimeText.text = "Processing time: " + processingTime.ToString("F2") + " secs";
+    }
+
+    public void UpdateNumOfNodesExplored(int num)
+    {
+        numOfNodesExploredText.text = "Number of nodes explored: " + num;
+    }
+
+    public void UpdateTotalCost(int cost)
+    {
+        totalCostText.text = "Total cost: " + cost;
     }
 }

@@ -56,7 +56,7 @@ public class GraphController : MonoBehaviour
     public List<Node> GetNeighbors(Node node)
     {
         List<Node> neighbors = new List<Node>();
-        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right};
 
         foreach (var direction in directions)
         {
@@ -85,6 +85,7 @@ public class GraphController : MonoBehaviour
     public void SetObstacleNode(Vector2Int graphPosition)
     {
         Node node = GetNode(graphPosition);
+        if (node == null) return;
         node.isPassable = false;
         ColorNode(graphPosition, obstacleTileSprite);
     }
