@@ -53,11 +53,13 @@ public class GraphController : MonoBehaviour
         return graph[graphPosition.x, graphPosition.y];
     }
 
-    public List<Node> GetNeighbors(Node node)
+    public List<Node> GetNeighbors(Node node, bool isRandomDirections = false)
     {
         List<Node> neighbors = new List<Node>();
-        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right};
+        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right,
+                                     new Vector2Int(1, 1), new Vector2Int(-1, -1), new Vector2Int(1, -1), new Vector2Int(-1, 1) };
 
+        if (isRandomDirections) Ultility.RandomizeArray(directions);
         foreach (var direction in directions)
         {
             Node neighbor = GetNode(node.graphPosition + direction);
@@ -111,6 +113,32 @@ public class GraphController : MonoBehaviour
         ColorNode(graphPosition, defaultTileSprite);
         if (node == startNode) startNode = null;
         else if (node == endNode) endNode = null;
+    }
+
+    public float GetNodeDistance(Node source, Node target)
+    {
+        int dx = Mathf.Abs(source.graphPosition.x - target.graphPosition.x);
+        int dy = Mathf.Abs(source.graphPosition.y - target.graphPosition.y);
+
+        int min = Mathf.Min(dx, dy);
+        int max = Mathf.Max(dx, dy);
+
+        int straightSteps = max - min;
+        return 1.4f * min + straightSteps;
+    }
+
+    // This method is used to calculate the cost of moving from one node to another surrounding node
+    public float GetStepCost(Node from, Node to)
+    {
+        if (from == null || to == null) return 0f;
+        int dx = Mathf.Abs(from.graphPosition.x - to.graphPosition.x);
+        int dy = Mathf.Abs(from.graphPosition.y - to.graphPosition.y);
+        if (dx == 1 && dy == 1)
+            return 1.4f;
+        else if ((dx == 1 && dy == 0) || (dx == 0 && dy == 1))
+            return 1f;
+        else
+            return 0f;
     }
 
     public void ResetGraph()

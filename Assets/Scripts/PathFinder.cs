@@ -14,6 +14,7 @@ public enum PathfindingAlgo
     IDDFS,
     BidirectionalSearch
 }
+
 public class PathFinder : MonoBehaviour
 {
     GraphController graphController;
@@ -22,10 +23,10 @@ public class PathFinder : MonoBehaviour
     Node endNode = null;
     public float delayForEachIteration = 0f;
 
-    [HideInInspector] public bool hasCompleted = false;
+    [HideInInspector] public bool hasCompleted = true;
     [HideInInspector] public PathfindingAlgo pathfindingAlgo;
     [HideInInspector] public int numOfNodesExplored = 0;
-    [HideInInspector] public int totalCost = 0;
+    [HideInInspector] public float totalCost = 0;
     [HideInInspector] public float processingTime = 0f;
 
     private void Awake()
@@ -78,7 +79,7 @@ public class PathFinder : MonoBehaviour
     private IEnumerator DFS()
     {
         float startTime = Time.realtimeSinceStartup;
-        yield return null;
+        yield return null; // Wait for the next frame
         Stack<Node> frontier = new Stack<Node>();
         HashSet<Node> visited = new HashSet<Node>();
         List<Node> path = new List<Node>();
@@ -93,20 +94,23 @@ public class PathFinder : MonoBehaviour
             if (currentNode == endNode)
             {
                 Node pathNode = endNode.parentNode;
+                path.Add(endNode);
+                totalCost += graphController.GetStepCost(pathNode, endNode);
                 while (pathNode != null && pathNode != startNode)
                 {
-                    totalCost += 1;
+                    totalCost += graphController.GetStepCost(pathNode.parentNode, pathNode);
                     graphController.ColorNode(pathNode.graphPosition, graphController.pathTileSprite);
                     path.Add(pathNode);
                     pathNode = pathNode.parentNode;
                     yield return new WaitForSeconds(delayForEachIteration);
                 }
-                hasCompleted = true;
+                path.Add(startNode);
                 DrawPathLine(path);
+                hasCompleted = true;
                 yield break;
             }
             visited.Add(currentNode);
-            foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+            foreach (Node neighbor in graphController.GetNeighbors(currentNode, true))
             {
                 if (!visited.Contains(neighbor) && neighbor.isPassable)
                 {
@@ -165,7 +169,7 @@ public class PathFinder : MonoBehaviour
     private void ResetPathFindingConfigs()
     {
         lineRenderer.positionCount = 0;
-        hasCompleted = false;
+        hasCompleted = true;
         numOfNodesExplored = 0;
         totalCost = 0;
         processingTime = 0f;

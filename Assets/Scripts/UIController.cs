@@ -86,8 +86,8 @@ public class UIController : MonoBehaviour
         numOfNodesExploredText.text = "Number of nodes explored: " + num;
     }
 
-    public void UpdateTotalCost(int cost)
+    public void UpdateTotalCost(float cost)
     {
-        totalCostText.text = "Total cost: " + cost;
+        totalCostText.text = "Total cost: " + cost.ToString("F2");
     }
 }
