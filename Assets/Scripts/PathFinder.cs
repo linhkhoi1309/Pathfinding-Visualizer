@@ -89,6 +89,7 @@ public class PathFinder : MonoBehaviour
         {
             Node currentNode = frontier.Pop();
             numOfNodesExplored++;
+            // Color the visited nodes
             if (currentNode != startNode && currentNode != endNode)
                 graphController.ColorNode(currentNode.graphPosition, graphController.visitedTileSprite);
             if (currentNode == endNode)
@@ -116,6 +117,7 @@ public class PathFinder : MonoBehaviour
                 {
                     frontier.Push(neighbor);
                     neighbor.parentNode = currentNode;
+                    // Color the frontier nodes
                     if (neighbor != endNode)
                         graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
                 }
@@ -181,7 +183,7 @@ public class PathFinder : MonoBehaviour
         for (int i = 0; i < path.Count; i++)
         {
             Vector3Int cellPos = (Vector3Int)(graphController.gridLowerBound + path[i].graphPosition);
-            Vector3 worldPos = graphController.tilemap.GetCellCenterWorld(cellPos);
+            Vector3 worldPos = graphController.currentTilemap.GetCellCenterWorld(cellPos);
             positions[i] = worldPos;
         }
         lineRenderer.positionCount = positions.Length;

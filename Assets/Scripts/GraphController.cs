@@ -4,7 +4,9 @@ using UnityEngine.Tilemaps;
 
 public class GraphController : MonoBehaviour
 {
-    public Tilemap tilemap;
+    [HideInInspector] public Tilemap currentTilemap = null;
+    public Tilemap blankTilemap;
+    public Tilemap sampleTilemap;
     public Sprite startTileSprite;
     public Sprite endTileSprite;
     public Sprite visitedTileSprite;
@@ -29,6 +31,7 @@ public class GraphController : MonoBehaviour
 
     public void InitializeGraph()
     {
+        currentTilemap = blankTilemap;
         graphWidth = gridUpperBound.x - gridLowerBound.x + 1;
         graphHeight = gridUpperBound.y - gridLowerBound.y + 1;
         graph = new Node[graphWidth, graphHeight];
@@ -38,6 +41,34 @@ public class GraphController : MonoBehaviour
             for (int y = 0; y < graphHeight; y++)
             {
                 graph[x, y] = new Node(new Vector2Int(x, y));
+            }
+        }
+
+        // Initialize the graph with the prebuilt tilemap
+        if (currentTilemap != blankTilemap)
+        {
+            for (int x = gridLowerBound.x; x <= gridUpperBound.x; x++)
+            {
+                for (int y = gridLowerBound.y; y <= gridUpperBound.y; y++)
+                {
+                    Vector3Int cellPosition = new Vector3Int(x, y, 0);
+                    Tile tile = currentTilemap.GetTile(cellPosition) as Tile;
+                    if (tile != null)
+                    {
+                        if (tile.sprite == obstacleTileSprite)
+                        {
+                            SetObstacleNode(new Vector2Int(x - gridLowerBound.x, y - gridLowerBound.y));
+                        }
+                        else if (tile.sprite == startTileSprite)
+                        {
+                            SetStartNode(new Vector2Int(x - gridLowerBound.x, y - gridLowerBound.y));
+                        }
+                        else if (tile.sprite == endTileSprite)
+                        {
+                            SetEndNode(new Vector2Int(x - gridLowerBound.x, y - gridLowerBound.y));
+                        }
+                    }
+                }
             }
         }
     }
@@ -82,7 +113,7 @@ public class GraphController : MonoBehaviour
         Vector3Int cellPosition = new Vector3Int(graphPosition.x + gridLowerBound.x, graphPosition.y + gridLowerBound.y, 0);
         Tile tile = ScriptableObject.CreateInstance<Tile>();
         tile.sprite = sprite;
-        tilemap.SetTile(cellPosition, tile);
+        currentTilemap.SetTile(cellPosition, tile);
     }
     public void SetObstacleNode(Vector2Int graphPosition)
     {
