@@ -9,8 +9,11 @@ public class UIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI numOfNodesExploredText;
     [SerializeField] private TextMeshProUGUI totalCostText;
     [SerializeField] private TMP_Dropdown algorithmDropdown;
+
+    [SerializeField] private TMP_Dropdown mazeDropdown;
     [SerializeField] private AudioClip buttonClickSound;
     PathFinder pathFinder;
+    GraphController graphController;
     PathfindingAlgo pathfindingAlgo;
 
     private void Awake()
@@ -18,7 +21,23 @@ public class UIController : MonoBehaviour
         resetButton.onClick.AddListener(OnResetButtonClicked);
         visualizeButton.onClick.AddListener(OnVisualizeButtonClicked);
         algorithmDropdown.onValueChanged.AddListener(OnAlgorithmDropdownSelected);
-        pathFinder = FindObjectOfType<PathFinder>();
+        mazeDropdown.onValueChanged.AddListener(OnMazeDropdownSelected);
+        pathFinder = FindFirstObjectByType<PathFinder>();
+        graphController = FindFirstObjectByType<GraphController>();
+    }
+
+    private void OnMazeDropdownSelected(int index)
+    {
+        pathFinder.ResetPathFindingConfigs();
+        switch (index)
+        {
+            case 0:
+                graphController.LoadTilemap(GlobalConfigs.BLANK_TILEMAP);
+                break;
+            case 1:
+                graphController.LoadTilemap(GlobalConfigs.MAZE_1_TILEMAP);
+                break;
+        }
     }
 
     private void OnResetButtonClicked()
@@ -35,6 +54,7 @@ public class UIController : MonoBehaviour
 
     private void OnAlgorithmDropdownSelected(int index)
     {
+        pathFinder.ResetPathFindingConfigs();
         switch (index)
         {
             case 0:

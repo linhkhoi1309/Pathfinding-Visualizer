@@ -1,6 +1,4 @@
-using System.Numerics;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 using Vector3 = UnityEngine.Vector3;
 
 public class InputController : MonoBehaviour
@@ -9,7 +7,7 @@ public class InputController : MonoBehaviour
 
     private void Awake()
     {
-        graphController = FindObjectOfType<GraphController>();
+        graphController = FindFirstObjectByType<GraphController>();
     }
     void Update()
     {

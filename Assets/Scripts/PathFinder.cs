@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 
 public enum PathfindingAlgo
@@ -15,6 +14,7 @@ public enum PathfindingAlgo
     BidirectionalSearch
 }
 
+[RequireComponent(typeof(LineRenderer))]
 public class PathFinder : MonoBehaviour
 {
     GraphController graphController;
@@ -31,7 +31,7 @@ public class PathFinder : MonoBehaviour
 
     private void Awake()
     {
-        graphController = FindObjectOfType<GraphController>();
+        graphController = FindFirstObjectByType<GraphController>();
         lineRenderer = GetComponent<LineRenderer>();
     }
 
@@ -125,6 +125,7 @@ public class PathFinder : MonoBehaviour
             processingTime = Time.realtimeSinceStartup - startTime;
             yield return new WaitForSeconds(delayForEachIteration);
         }
+        Debug.Log("No path found.");
     }
 
     private IEnumerator BFS()
@@ -199,6 +200,7 @@ public class PathFinder : MonoBehaviour
             processingTime = Time.realtimeSinceStartup - startTime;
             yield return new WaitForSeconds(delayForEachIteration);
         }
+        Debug.Log("No path found.");
     }
 
     private IEnumerator GreedyBestFirstSearch()
@@ -227,7 +229,7 @@ public class PathFinder : MonoBehaviour
         graphController.ResetGraph();
     }
 
-    private void ResetPathFindingConfigs()
+    public void ResetPathFindingConfigs()
     {
         lineRenderer.positionCount = 0;
         hasCompleted = true;

@@ -3,11 +3,12 @@ using UnityEngine;
 
 public class Node : IComparable<Node>
 {
-    public Vector2Int graphPosition;
+    public Vector2Int graphPosition; 
     public Node parentNode;
     public bool isPassable = true; // Indicates if the node is passable or an obstacle
     public float priority;
     public float distanceTraveled = 0f; // Distance traveled from the start node to this node
+    public bool preserved = false; // Indicates if the node is preserved (cannot be cleared when resetting)
     public Node(Vector2Int graphPosition)
     {
         this.graphPosition = graphPosition;
