@@ -158,20 +158,6 @@ public class GraphController : MonoBehaviour
         return 1.4f * min + straightSteps;
     }
 
-    // This method is used to calculate the cost of moving from one node to another surrounding node
-    public float GetStepCost(Node from, Node to)
-    {
-        if (from == null || to == null) return 0f;
-        int dx = Mathf.Abs(from.graphPosition.x - to.graphPosition.x);
-        int dy = Mathf.Abs(from.graphPosition.y - to.graphPosition.y);
-        if (dx == 1 && dy == 1)
-            return 1.4f;
-        else if ((dx == 1 && dy == 0) || (dx == 0 && dy == 1))
-            return 1f;
-        else
-            return 0f;
-    }
-
     public void ResetGraph()
     {
         for (int x = 0; x < graphWidth; x++)

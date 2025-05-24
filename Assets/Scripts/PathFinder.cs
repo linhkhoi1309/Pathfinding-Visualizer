@@ -96,10 +96,10 @@ public class PathFinder : MonoBehaviour
             {
                 Node pathNode = endNode.parentNode;
                 path.Add(endNode);
-                totalCost += graphController.GetStepCost(pathNode, endNode);
+                totalCost += graphController.GetNodeDistance(pathNode, endNode);
                 while (pathNode != null && pathNode != startNode)
                 {
-                    totalCost += graphController.GetStepCost(pathNode.parentNode, pathNode);
+                    totalCost += graphController.GetNodeDistance(pathNode.parentNode, pathNode);
                     graphController.ColorNode(pathNode.graphPosition, graphController.pathTileSprite);
                     path.Add(pathNode);
                     pathNode = pathNode.parentNode;
@@ -139,7 +139,66 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator AStar()
     {
-        yield return null;
+        float startTime = Time.realtimeSinceStartup;
+        yield return null; // Wait for the next frame
+        foreach (Node node in graphController.graph)
+            node.distanceTraveled = Mathf.Infinity;
+        startNode.distanceTraveled = 0;
+        PriorityQueue<Node> frontier = new PriorityQueue<Node>();
+        HashSet<Node> visited = new HashSet<Node>();
+        frontier.Enqueue(startNode);
+        while (frontier.Count > 0)
+        {
+            Node currentNode = frontier.Dequeue();
+            numOfNodesExplored++;
+            if (currentNode != startNode && currentNode != endNode)
+                graphController.ColorNode(currentNode.graphPosition, graphController.visitedTileSprite);
+            if (currentNode == endNode)
+            {
+                Node pathNode = endNode.parentNode;
+                List<Node> path = new List<Node>();
+                path.Add(endNode);
+                totalCost += graphController.GetNodeDistance(pathNode, endNode);
+                while (pathNode != null && pathNode != startNode)
+                {
+                    totalCost += graphController.GetNodeDistance(pathNode.parentNode, pathNode);
+                    graphController.ColorNode(pathNode.graphPosition, graphController.pathTileSprite);
+                    path.Add(pathNode);
+                    pathNode = pathNode.parentNode;
+                    yield return new WaitForSeconds(delayForEachIteration);
+                }
+                path.Add(startNode);
+                DrawPathLine(path);
+                hasCompleted = true;
+                yield break;
+            }
+            visited.Add(currentNode);
+            foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+            {
+                if (!visited.Contains(neighbor) && neighbor.isPassable)
+                {
+                    float distanceToNeighbor = graphController.GetNodeDistance(currentNode, neighbor);
+                    float newDistanceTraveled = distanceToNeighbor + currentNode.distanceTraveled;
+
+                    if (float.IsPositiveInfinity(neighbor.distanceTraveled) || newDistanceTraveled < neighbor.distanceTraveled)
+                    {
+                        neighbor.parentNode = currentNode;
+                        neighbor.distanceTraveled = newDistanceTraveled;
+                    }
+
+                    if (!frontier.Contains(neighbor))
+                    {
+                        float distanceToEndNode = graphController.GetNodeDistance(neighbor, endNode);
+                        neighbor.priority = neighbor.distanceTraveled + distanceToEndNode;
+                        frontier.Enqueue(neighbor);
+                        if (neighbor != endNode)
+                            graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
+                    }
+                }
+            }
+            processingTime = Time.realtimeSinceStartup - startTime;
+            yield return new WaitForSeconds(delayForEachIteration);
+        }
     }
 
     private IEnumerator GreedyBestFirstSearch()
