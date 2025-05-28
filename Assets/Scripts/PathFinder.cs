@@ -135,7 +135,79 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator UCS()
     {
+        float startTime = Time.realtimeSinceStartup;
         yield return null;
+        
+        foreach (Node node in graphController.graph)
+            node.distanceTraveled = Mathf.Infinity;
+        
+        startNode.distanceTraveled = 0;
+        
+        PriorityQueue<Node> frontier = new PriorityQueue<Node>();
+        HashSet<Node> visited = new HashSet<Node>();
+        List<Node> path = new List<Node>();
+        
+        frontier.Enqueue(startNode);
+
+        while (frontier.Count > 0)
+        {
+            Node currentNode = frontier.Dequeue();
+            numOfNodesExplored++;
+            
+            if (currentNode != startNode && currentNode != endNode)
+                graphController.ColorNode(currentNode.graphPosition, graphController.visitedTileSprite);
+            
+            if (currentNode == endNode)
+            {
+                Node pathNode = endNode.parentNode;
+                path.Add(endNode);
+                totalCost += graphController.GetNodeDistance(pathNode, endNode);
+                
+                while (pathNode != null && pathNode != startNode)
+                {
+                    totalCost += graphController.GetNodeDistance(pathNode.parentNode, pathNode);
+                    graphController.ColorNode(pathNode.graphPosition, graphController.pathTileSprite);
+                    path.Add(pathNode);
+                    pathNode = pathNode.parentNode;
+                    yield return new WaitForSeconds(delayForEachIteration);
+                }
+                
+                path.Add(startNode);
+                DrawPathLine(path);
+                hasCompleted = true;
+                yield break;
+            }
+            
+            visited.Add(currentNode);
+            
+            foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+            {
+                if (!visited.Contains(neighbor) && neighbor.isPassable)
+                {
+                    float distanceToNeighbor = graphController.GetNodeDistance(currentNode, neighbor);
+                    float newDistanceTraveled = distanceToNeighbor + currentNode.distanceTraveled;
+                    
+                    if (float.IsPositiveInfinity(neighbor.distanceTraveled) || newDistanceTraveled < neighbor.distanceTraveled)
+                    {
+                        neighbor.parentNode = currentNode;
+                        neighbor.distanceTraveled = newDistanceTraveled;
+                    }
+
+                    if (!frontier.Contains(neighbor))
+                    {
+                        neighbor.priority = neighbor.distanceTraveled;
+                        frontier.Enqueue(neighbor);
+                        if (neighbor != endNode)
+                            graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
+                    }
+                }
+            }
+            
+            processingTime = Time.realtimeSinceStartup - startTime;
+            yield return new WaitForSeconds(delayForEachIteration);
+        }
+        
+        Debug.Log("No path found.");
     }
 
     private IEnumerator AStar()
