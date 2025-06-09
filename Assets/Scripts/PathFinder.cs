@@ -441,7 +441,95 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator IDDFS()
     {
-        yield return null;
+        float startTime = Time.realtimeSinceStartup;
+        yield return null; // Wait for the next frame
+
+        int depth = 0;
+        bool pathFound = false;
+
+        while (!pathFound)
+        {
+            foreach (Node node in graphController.graph)
+            {
+                node.parentNode = null;
+            }
+
+            HashSet<Node> visited = new HashSet<Node>();
+            pathFound = DLS(startNode, endNode, depth, visited);
+
+            processingTime = Time.realtimeSinceStartup - startTime;
+
+            if (pathFound)
+            {
+                List<Node> path = new List<Node>();
+                Node pathNode = endNode;
+                totalCost = 0;
+
+                while (pathNode != null)
+                {
+                    path.Add(pathNode);
+                    if (pathNode.parentNode != null)
+                        totalCost += graphController.GetNodeDistance(pathNode.parentNode, pathNode);
+                    pathNode = pathNode.parentNode;
+                }
+
+                path.Reverse();
+
+                foreach (Node node in path)
+                {
+                    if (node != startNode && node != endNode)
+                    {
+                        graphController.ColorNode(node.graphPosition, graphController.pathTileSprite);
+                        yield return new WaitForSeconds(delayForEachIteration);
+                    }
+                }
+
+                DrawPathLine(path);
+                hasCompleted = true;
+                processingTime = Time.realtimeSinceStartup - startTime;
+                yield break;
+            }
+
+            depth++;
+            yield return new WaitForSeconds(delayForEachIteration);
+        }
+
+        Debug.Log("No path found.");
+        hasCompleted = true;
+        processingTime = Time.realtimeSinceStartup - startTime;
+    }
+
+    private bool DLS(Node currentNode, Node targetNode, int depthLimit, HashSet<Node> visited)
+    {
+        numOfNodesExplored++;
+        if (currentNode == targetNode)
+            return true;
+
+        if (depthLimit == 0)
+            return false;
+
+        visited.Add(currentNode);
+
+        foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+        {
+            if (!neighbor.isPassable || visited.Contains(neighbor))
+                continue;
+
+            if (neighbor.parentNode == null)
+                neighbor.parentNode = currentNode;
+
+            if (neighbor != targetNode)
+                graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
+
+            bool found = DLS(neighbor, targetNode, depthLimit - 1, visited);
+            if (found)
+                return true;
+        }
+
+        if (currentNode != startNode && currentNode != targetNode)
+            graphController.ColorNode(currentNode.graphPosition, graphController.visitedTileSprite);
+
+        return false;
     }
 
     private IEnumerator BidirectionalSearch()
