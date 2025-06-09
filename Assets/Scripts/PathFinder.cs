@@ -130,7 +130,63 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator BFS()
     {
+        float startTime = Time.realtimeSinceStartup;
         yield return null;
+
+        Queue<Node> frontier = new Queue<Node>();
+        HashSet<Node> visited = new HashSet<Node>();
+        List<Node> path = new List<Node>();
+
+        frontier.Enqueue(startNode);
+        visited.Add(startNode);
+        startNode.parentNode = null;
+
+        while (frontier.Count > 0)
+        {
+            Node currentNode = frontier.Dequeue();
+            numOfNodesExplored++;
+
+            if (currentNode != startNode && currentNode != endNode)
+                graphController.ColorNode(currentNode.graphPosition, graphController.visitedTileSprite);
+
+            if (currentNode == endNode)
+            {
+                Node pathNode = endNode.parentNode;
+                path.Add(endNode);
+                totalCost += graphController.GetNodeDistance(pathNode, endNode);
+                while (pathNode != null && pathNode != startNode)
+                {
+                    totalCost += graphController.GetNodeDistance(pathNode.parentNode, pathNode);
+                    graphController.ColorNode(pathNode.graphPosition, graphController.pathTileSprite);
+                    path.Add(pathNode);
+                    pathNode = pathNode.parentNode;
+                    yield return new WaitForSeconds(delayForEachIteration);
+                }
+
+                path.Add(startNode);
+                DrawPathLine(path);
+                hasCompleted = true;
+                processingTime = Time.realtimeSinceStartup - startTime;
+                yield break;
+            }
+
+            foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+            {
+                if (!visited.Contains(neighbor) && neighbor.isPassable)
+                {
+                    neighbor.parentNode = currentNode;
+                    frontier.Enqueue(neighbor);
+                    visited.Add(neighbor);
+                    if (neighbor != endNode)
+                        graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
+                }
+            }
+
+            processingTime = Time.realtimeSinceStartup - startTime;
+            yield return new WaitForSeconds(delayForEachIteration);
+        }
+
+        Debug.Log("No path found.");
     }
 
     private IEnumerator UCS()
