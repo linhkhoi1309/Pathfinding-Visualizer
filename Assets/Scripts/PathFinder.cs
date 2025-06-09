@@ -570,9 +570,8 @@ public class PathFinder : MonoBehaviour
         {
             if (!neighbor.isPassable || visited.Contains(neighbor))
                 continue;
-
-            if (neighbor.parentNode == null)
-                neighbor.parentNode = currentNode;
+                
+            neighbor.parentNode = currentNode;
 
             if (neighbor != targetNode)
                 graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
