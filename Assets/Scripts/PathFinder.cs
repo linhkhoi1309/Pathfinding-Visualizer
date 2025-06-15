@@ -718,6 +718,7 @@ public class PathFinder : MonoBehaviour
     public void ResetPathFinding()
     {
         ResetPathFindingConfigs();
+        StopAllCoroutines();
         graphController.ResetGraph();
     }
 
