@@ -26,13 +26,17 @@ public class UIController : MonoBehaviour
         graphController = FindFirstObjectByType<GraphController>();
     }
 
+    private void Start() {
+        mazeDropdown.value = 1;
+    }
+
     private void OnMazeDropdownSelected(int index)
     {
         pathFinder.ResetPathFindingConfigs();
         switch (index)
         {
             case 0:
-                graphController.LoadTilemap(GlobalConfigs.BLANK_TILEMAP);
+                graphController.LoadTilemap(GlobalConfigs.CUSTOM_TILEMAP);
                 break;
             case 1:
                 graphController.LoadTilemap(GlobalConfigs.MAZE_1_TILEMAP);

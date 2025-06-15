@@ -29,9 +29,11 @@ public class GraphController : MonoBehaviour
     public Node startNode = null;
     public Node endNode = null;
 
+    public string currentTilemapTag = GlobalConfigs.MAZE_1_TILEMAP;
+
     private void Awake()
     {
-        LoadTilemap(GlobalConfigs.BLANK_TILEMAP);
+        LoadTilemap(currentTilemapTag);
     }
 
     public void InitializeGraph()
@@ -49,7 +51,7 @@ public class GraphController : MonoBehaviour
         }
 
         // Initializes the graph with the prebuilt tilemap
-        if (currentTilemap != tilemaps[0]) // If the current tilemap is not the blank one
+        if (currentTilemapTag != GlobalConfigs.CUSTOM_TILEMAP) // If the current tilemap is not the custom one
         {
             for (int x = gridLowerBound.x; x <= gridUpperBound.x; x++)
             {
@@ -74,7 +76,7 @@ public class GraphController : MonoBehaviour
                     }
                 }
             }
-        }
+        } else ResetGraph(); // If the current tilemap is the custom one, reset the graph to default state
     }
 
     public bool IsNodeWithinBounds(Vector2Int graphPosition)
@@ -156,7 +158,7 @@ public class GraphController : MonoBehaviour
     public void ClearNode(Vector2Int graphPosition)
     {
         Node node = GetNode(graphPosition);
-        if(node == null || node.preserved) return;
+        if (node == null || node.preserved) return;
         node.isPassable = true;
         ColorNode(graphPosition, defaultTileSprite);
     }
@@ -177,8 +179,8 @@ public class GraphController : MonoBehaviour
     // Resets the entire graph, clearing all nodes to default and making them passable
     public void ResetGraph()
     {
-        if(startNode != null && !startNode.preserved) startNode = null;
-        if(endNode != null && !endNode.preserved) endNode = null;
+        if (startNode != null && !startNode.preserved) startNode = null;
+        if (endNode != null && !endNode.preserved) endNode = null;
         for (int x = 0; x < graphWidth; x++)
         {
             for (int y = 0; y < graphHeight; y++)
@@ -190,8 +192,6 @@ public class GraphController : MonoBehaviour
 
     public void LoadTilemap(string tilemapTag)
     {
-        if(startNode != null && !startNode.preserved) startNode = null;
-        if(endNode != null && !endNode.preserved) endNode = null;
         foreach (Tilemap tm in tilemaps)
         {
             if (tm.gameObject.tag == tilemapTag)
@@ -207,6 +207,14 @@ public class GraphController : MonoBehaviour
             Debug.LogError("No tilemap found with tag: " + tilemapTag);
             return;
         }
+        if (currentTilemapTag != tilemapTag)
+        {
+            startNode = null;
+            endNode = null;
+        }
+        if (startNode != null && !startNode.preserved) startNode = null;
+        if (endNode != null && !endNode.preserved) endNode = null;
+        currentTilemapTag = tilemapTag;
         InitializeGraph();
     }
 }

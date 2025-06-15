@@ -5,7 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Maze1
-  - Blank
+  - Custom
   layers:
   - Default
   - TransparentFX

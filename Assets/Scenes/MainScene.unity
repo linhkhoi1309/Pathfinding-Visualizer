@@ -9837,8 +9837,8 @@ GameObject:
   - component: {fileID: 540268613}
   - component: {fileID: 540268615}
   m_Layer: 0
-  m_Name: BlankTilemap
-  m_TagString: Blank
+  m_Name: CustomTilemap
+  m_TagString: Custom
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -19899,7 +19899,7 @@ MonoBehaviour:
   m_MultiSelect: 0
   m_Options:
     m_Options:
-    - m_Text: Blank
+    - m_Text: Custom
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
     - m_Text: Maze 1
@@ -19991,6 +19991,7 @@ MonoBehaviour:
   gridUpperBound: {x: 20, y: 10}
   graphWidth: 0
   graphHeight: 0
+  currentTilemapTag: Maze1
 --- !u!4 &1274221228
 Transform:
   m_ObjectHideFlags: 0
@@ -21239,7 +21240,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Blank
+  m_text: Custom
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9641a445fd55a3346b2679d3078000e8, type: 2}
   m_sharedMaterial: {fileID: -7130933509766803903, guid: 9641a445fd55a3346b2679d3078000e8, type: 2}
