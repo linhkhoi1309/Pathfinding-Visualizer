@@ -686,7 +686,8 @@ public class PathFinder : MonoBehaviour
         for (int i = 1; i < path.Count; i++)
         {
             totalCost += graphController.GetNodeDistance(path[i - 1], path[i]);
-            if(i != path.Count - 1) graphController.ColorNode(path[i].graphPosition, graphController.pathTileSprite);
+            if (i < path.Count - 1)
+                graphController.ColorNode(path[i].graphPosition, graphController.pathTileSprite);
             yield return new WaitForSeconds(delayForEachIteration);
         }
 
@@ -694,7 +695,6 @@ public class PathFinder : MonoBehaviour
         hasCompleted = true;
         processingTime = Time.realtimeSinceStartup - startTime;
     }
-
     public void ResetPathFinding()
     {
         ResetPathFindingConfigs();
