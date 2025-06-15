@@ -502,8 +502,11 @@ public class PathFinder : MonoBehaviour
 
         int depth = 0;
         bool pathFound = false;
+        bool allReachableNodesVisited = false;
 
-        while (!pathFound)
+        int maxDepth = graphController.graph.Length; 
+
+        while (!pathFound && !allReachableNodesVisited && depth <= maxDepth )
         {
             foreach (Node node in graphController.graph)
             {
@@ -512,6 +515,16 @@ public class PathFinder : MonoBehaviour
 
             HashSet<Node> visited = new HashSet<Node>();
             pathFound = DLS(startNode, endNode, depth, visited);
+
+            allReachableNodesVisited = true;
+            foreach (Node node in graphController.graph)
+            {
+                if (node.isPassable && !visited.Contains(node))
+                {
+                    allReachableNodesVisited = false;
+                    break;
+                }
+            }
 
             processingTime = Time.realtimeSinceStartup - startTime;
 
