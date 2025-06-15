@@ -29,10 +29,17 @@ public class PathFinder : MonoBehaviour
     [HideInInspector] public float totalCost = 0;
     [HideInInspector] public float processingTime = 0f;
 
+    private UIController uiController;
+
     private void Awake()
     {
         graphController = FindFirstObjectByType<GraphController>();
         lineRenderer = GetComponent<LineRenderer>();
+    }
+
+    private void Start()
+    {
+        uiController = FindFirstObjectByType<UIController>();
     }
 
     public void InitializePathfinder(PathfindingAlgo pathfindingAlgo)
@@ -125,7 +132,7 @@ public class PathFinder : MonoBehaviour
             processingTime = Time.realtimeSinceStartup - startTime;
             yield return new WaitForSeconds(delayForEachIteration);
         }
-        Debug.Log("No path found.");
+        uiController.ShowPopup("Pathfinding Error", "No path found");
     }
 
     private IEnumerator BFS()
@@ -259,7 +266,7 @@ public class PathFinder : MonoBehaviour
             yield return new WaitForSeconds(delayForEachIteration);
         }
 
-        Debug.Log("No path found.");
+        uiController.ShowPopup("Pathfinding Error", "No path found");
     }
 
     private IEnumerator AStar()
@@ -320,7 +327,7 @@ public class PathFinder : MonoBehaviour
             processingTime = Time.realtimeSinceStartup - startTime;
             yield return new WaitForSeconds(delayForEachIteration);
         }
-        Debug.Log("No path found.");
+        uiController.ShowPopup("Pathfinding Error", "No path found");
     }
 
     private IEnumerator GreedyBestFirstSearch()
@@ -388,7 +395,7 @@ public class PathFinder : MonoBehaviour
             yield return new WaitForSeconds(delayForEachIteration);
         }
 
-        Debug.Log("No path found.");
+        uiController.ShowPopup("Pathfinding Error", "No path found");
         hasCompleted = true;
     }
 
@@ -485,7 +492,7 @@ public class PathFinder : MonoBehaviour
 
             if (minThreshold == Mathf.Infinity)
             {
-                Debug.Log("No path found.");
+                uiController.ShowPopup("Pathfinding Error", "No path found");
                 hasCompleted = true;
                 processingTime = Time.realtimeSinceStartup - startTime;
                 yield break;
@@ -563,7 +570,7 @@ public class PathFinder : MonoBehaviour
             yield return new WaitForSeconds(delayForEachIteration);
         }
 
-        Debug.Log("No path found.");
+        uiController.ShowPopup("Pathfinding Error", "No path found");
         hasCompleted = true;
         processingTime = Time.realtimeSinceStartup - startTime;
     }
@@ -674,7 +681,7 @@ public class PathFinder : MonoBehaviour
             yield return new WaitForSeconds(delayForEachIteration);
         }
 
-        Debug.Log("No path found.");
+        uiController.ShowPopup("Pathfinding Error", "No path found");
         hasCompleted = true;
         yield break;
 

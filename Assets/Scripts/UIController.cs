@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
+using DG.Tweening;
 public class UIController : MonoBehaviour
 {
     [SerializeField] private Button resetButton;
@@ -12,6 +14,8 @@ public class UIController : MonoBehaviour
 
     [SerializeField] private TMP_Dropdown mazeDropdown;
     [SerializeField] private AudioClip buttonClickSound;
+
+    [SerializeField] private GameObject popupPrefab;
     PathFinder pathFinder;
     GraphController graphController;
     PathfindingAlgo pathfindingAlgo;
@@ -26,8 +30,10 @@ public class UIController : MonoBehaviour
         graphController = FindFirstObjectByType<GraphController>();
     }
 
-    private void Start() {
+    private void Start()
+    {
         mazeDropdown.value = 1;
+        ShowPopup("Welcome to Pathfinding Visualizer", "Select a maze and an algorithm to visualize the pathfinding process. Click 'Visualize' to start.");
     }
 
     private void OnMazeDropdownSelected(int index)
@@ -113,5 +119,22 @@ public class UIController : MonoBehaviour
     public void UpdateTotalCost(float cost)
     {
         totalCostText.text = "Total cost: " + cost.ToString("F2");
+    }
+
+    public void ShowPopup(string title, string content)
+    {
+        GameObject popup = Instantiate(popupPrefab, transform);
+        popup.GetComponent<Popup>().SetPopupTitle(title);
+        popup.GetComponent<Popup>().SetPopupContent(content);
+        AnimatePopup(popup);
+    }
+
+    private void AnimatePopup(GameObject popup)
+    {
+        RectTransform rectTransform = popup.GetComponent<RectTransform>();
+        rectTransform.DOAnchorPosY(-100, 3f).OnComplete(() =>
+        {
+            Destroy(popup);
+        });
     }
 }

@@ -19807,6 +19807,7 @@ MonoBehaviour:
   algorithmDropdown: {fileID: 1675609379}
   mazeDropdown: {fileID: 1266212758}
   buttonClickSound: {fileID: 8300000, guid: 8319a0c85e43bf74ea45c27cd4269e0e, type: 3}
+  popupPrefab: {fileID: 5245835144157345205, guid: 0bd4d3eb474f22e43af456165f4baf93, type: 3}
 --- !u!1 &1266212756
 GameObject:
   m_ObjectHideFlags: 0
