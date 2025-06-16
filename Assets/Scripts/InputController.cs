@@ -11,6 +11,11 @@ public class InputController : MonoBehaviour
     }
     void Update()
     {
+        ListenToMouseEvents();
+    }
+
+    private void ListenToMouseEvents()
+    {
         if (Input.GetMouseButton(0)) // Left click
         {
             Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);

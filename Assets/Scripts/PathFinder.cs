@@ -49,7 +49,7 @@ public class PathFinder : MonoBehaviour
         endNode = graphController.endNode;
         if (startNode == null || endNode == null)
         {
-            Debug.LogError("Start or End node is not set.");
+            uiController.ShowPopup("Pathfinding Error", "Start node or end node is not set");
             return;
         }
         this.pathfindingAlgo = pathfindingAlgo;
@@ -57,27 +57,35 @@ public class PathFinder : MonoBehaviour
         switch (pathfindingAlgo)
         {
             case PathfindingAlgo.DFS:
+                StartCoroutine(m_DFS());
                 StartCoroutine(DFS());
                 break;
             case PathfindingAlgo.BFS:
+                StartCoroutine(m_BFS());
                 StartCoroutine(BFS());
                 break;
             case PathfindingAlgo.UCS:
+                StartCoroutine(m_UCS());
                 StartCoroutine(UCS());
                 break;
             case PathfindingAlgo.AStar:
+                StartCoroutine(m_AStar());
                 StartCoroutine(AStar());
                 break;
             case PathfindingAlgo.GreedyBestFirstSearch:
+                StartCoroutine(m_GreedyBestFirstSearch());
                 StartCoroutine(GreedyBestFirstSearch());
                 break;
             case PathfindingAlgo.IDAStar:
+                StartCoroutine(m_IDAStar());
                 StartCoroutine(IDAStar());
                 break;
             case PathfindingAlgo.IDDFS:
+                StartCoroutine(m_IDDFS());
                 StartCoroutine(IDDFS());
                 break;
             case PathfindingAlgo.BidirectionalSearch:
+                StartCoroutine(m_BidirectionalSearch());
                 StartCoroutine(BidirectionalSearch());
                 break;
         }
@@ -85,8 +93,6 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator DFS()
     {
-        float startTime = Time.realtimeSinceStartup;
-        yield return null; // Wait for the next frame
         Stack<Node> frontier = new Stack<Node>();
         HashSet<Node> visited = new HashSet<Node>();
         List<Node> path = new List<Node>();
@@ -118,7 +124,7 @@ public class PathFinder : MonoBehaviour
                 yield break;
             }
             visited.Add(currentNode);
-            foreach (Node neighbor in graphController.GetNeighbors(currentNode, true))
+            foreach (Node neighbor in graphController.GetNeighbors(currentNode))
             {
                 if (!visited.Contains(neighbor) && neighbor.isPassable)
                 {
@@ -129,17 +135,43 @@ public class PathFinder : MonoBehaviour
                         graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
                 }
             }
-            processingTime = Time.realtimeSinceStartup - startTime;
             yield return new WaitForSeconds(delayForEachIteration);
         }
         uiController.ShowPopup("Pathfinding Error", "No path found");
     }
 
-    private IEnumerator BFS()
+    private IEnumerator m_DFS()
     {
         float startTime = Time.realtimeSinceStartup;
+        Stack<Node> frontier = new Stack<Node>();
+        HashSet<Node> visited = new HashSet<Node>();
+        List<Node> path = new List<Node>();
+        frontier.Push(startNode);
+        startNode.parentNode = null;
+        while (frontier.Count > 0)
+        {
+            Node currentNode = frontier.Pop();
+            if (currentNode == endNode)
+            {
+                processingTime = Time.realtimeSinceStartup - startTime;
+                yield break;
+            }
+            visited.Add(currentNode);
+            foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+            {
+                if (!visited.Contains(neighbor) && neighbor.isPassable)
+                {
+                    frontier.Push(neighbor);
+                    neighbor.parentNode = currentNode;
+                }
+            }
+        }
+        processingTime = Time.realtimeSinceStartup - startTime;
         yield return null;
+    }
 
+    private IEnumerator BFS()
+    {
         Queue<Node> frontier = new Queue<Node>();
         HashSet<Node> visited = new HashSet<Node>();
         List<Node> path = new List<Node>();
@@ -173,7 +205,6 @@ public class PathFinder : MonoBehaviour
                 path.Add(startNode);
                 DrawPathLine(path);
                 hasCompleted = true;
-                processingTime = Time.realtimeSinceStartup - startTime;
                 yield break;
             }
 
@@ -188,19 +219,45 @@ public class PathFinder : MonoBehaviour
                         graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
                 }
             }
-
-            processingTime = Time.realtimeSinceStartup - startTime;
             yield return new WaitForSeconds(delayForEachIteration);
         }
 
-        Debug.Log("No path found.");
+        uiController.ShowPopup("Pathfinding Error", "No path found");
+    }
+
+    private IEnumerator m_BFS()
+    {
+        float startTime = Time.realtimeSinceStartup;
+        Queue<Node> frontier = new Queue<Node>();
+        HashSet<Node> visited = new HashSet<Node>();
+        List<Node> path = new List<Node>();
+        frontier.Enqueue(startNode);
+        visited.Add(startNode);
+        startNode.parentNode = null;
+        while (frontier.Count > 0)
+        {
+            Node currentNode = frontier.Dequeue();
+            if (currentNode == endNode)
+            {
+                processingTime = Time.realtimeSinceStartup - startTime;
+                yield break;
+            }
+            foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+            {
+                if (!visited.Contains(neighbor) && neighbor.isPassable)
+                {
+                    neighbor.parentNode = currentNode;
+                    frontier.Enqueue(neighbor);
+                    visited.Add(neighbor);
+                }
+            }
+        }
+        processingTime = Time.realtimeSinceStartup - startTime;
+        yield return null;
     }
 
     private IEnumerator UCS()
     {
-        float startTime = Time.realtimeSinceStartup;
-        yield return null;
-
         foreach (Node node in graphController.graph)
             node.distanceTraveled = Mathf.Infinity;
 
@@ -261,18 +318,56 @@ public class PathFinder : MonoBehaviour
                     }
                 }
             }
-
-            processingTime = Time.realtimeSinceStartup - startTime;
             yield return new WaitForSeconds(delayForEachIteration);
         }
 
         uiController.ShowPopup("Pathfinding Error", "No path found");
     }
 
-    private IEnumerator AStar()
+    private IEnumerator m_UCS()
     {
         float startTime = Time.realtimeSinceStartup;
-        yield return null; // Wait for the next frame
+        foreach (Node node in graphController.graph)
+            node.distanceTraveled = Mathf.Infinity;
+
+        startNode.distanceTraveled = 0;
+
+        PriorityQueue<Node> frontier = new PriorityQueue<Node>();
+        HashSet<Node> visited = new HashSet<Node>();
+
+        frontier.Enqueue(startNode);
+
+        while (frontier.Count > 0)
+        {
+            Node currentNode = frontier.Dequeue();
+            if (currentNode == endNode)
+            {
+                processingTime = Time.realtimeSinceStartup - startTime;
+                yield break;
+            }
+            visited.Add(currentNode);
+            foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+            {
+                if (!visited.Contains(neighbor) && neighbor.isPassable)
+                {
+                    float distanceToNeighbor = graphController.GetNodeDistance(currentNode, neighbor);
+                    float newDistanceTraveled = distanceToNeighbor + currentNode.distanceTraveled;
+
+                    if (float.IsPositiveInfinity(neighbor.distanceTraveled) || newDistanceTraveled < neighbor.distanceTraveled)
+                    {
+                        neighbor.parentNode = currentNode;
+                        neighbor.distanceTraveled = newDistanceTraveled;
+                        neighbor.priority = neighbor.distanceTraveled;
+                        frontier.Enqueue(neighbor);
+                    }
+                }
+            }
+        }
+        processingTime = Time.realtimeSinceStartup - startTime;
+    }
+
+    private IEnumerator AStar()
+    {
         foreach (Node node in graphController.graph)
             node.distanceTraveled = Mathf.Infinity;
         startNode.distanceTraveled = 0;
@@ -324,17 +419,52 @@ public class PathFinder : MonoBehaviour
                     }
                 }
             }
-            processingTime = Time.realtimeSinceStartup - startTime;
             yield return new WaitForSeconds(delayForEachIteration);
         }
         uiController.ShowPopup("Pathfinding Error", "No path found");
     }
 
-    private IEnumerator GreedyBestFirstSearch()
+    private IEnumerator m_AStar()
     {
         float startTime = Time.realtimeSinceStartup;
-        yield return null; // Wait for the next frame
+        foreach (Node node in graphController.graph)
+            node.distanceTraveled = Mathf.Infinity;
+        startNode.distanceTraveled = 0;
+        PriorityQueue<Node> frontier = new PriorityQueue<Node>();
+        HashSet<Node> visited = new HashSet<Node>();
+        frontier.Enqueue(startNode);
+        while (frontier.Count > 0)
+        {
+            Node currentNode = frontier.Dequeue();
+            if (currentNode == endNode)
+            {
+                processingTime = Time.realtimeSinceStartup - startTime;
+                yield break;
+            }
+            visited.Add(currentNode);
+            foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+            {
+                if (!visited.Contains(neighbor) && neighbor.isPassable)
+                {
+                    float distanceToNeighbor = graphController.GetNodeDistance(currentNode, neighbor);
+                    float newDistanceTraveled = distanceToNeighbor + currentNode.distanceTraveled;
 
+                    if (float.IsPositiveInfinity(neighbor.distanceTraveled) || newDistanceTraveled < neighbor.distanceTraveled)
+                    {
+                        neighbor.parentNode = currentNode;
+                        neighbor.distanceTraveled = newDistanceTraveled;
+                        float distanceToEndNode = graphController.GetNodeDistance(neighbor, endNode);
+                        neighbor.priority = neighbor.distanceTraveled + distanceToEndNode;
+                        frontier.Enqueue(neighbor);
+                    }
+                }
+            }
+        }
+        processingTime = Time.realtimeSinceStartup - startTime;
+    }
+
+    private IEnumerator GreedyBestFirstSearch()
+    {
         PriorityQueue<Node> frontier = new PriorityQueue<Node>();
         HashSet<Node> visited = new HashSet<Node>();
         List<Node> path = new List<Node>();
@@ -369,7 +499,6 @@ public class PathFinder : MonoBehaviour
                 path.Add(startNode);
                 DrawPathLine(path);
                 hasCompleted = true;
-                processingTime = Time.realtimeSinceStartup - startTime;
                 yield break;
             }
 
@@ -390,8 +519,6 @@ public class PathFinder : MonoBehaviour
                         graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
                 }
             }
-
-            processingTime = Time.realtimeSinceStartup - startTime;
             yield return new WaitForSeconds(delayForEachIteration);
         }
 
@@ -399,12 +526,45 @@ public class PathFinder : MonoBehaviour
         hasCompleted = true;
     }
 
+    private IEnumerator m_GreedyBestFirstSearch()
+    {
+        float startTime = Time.realtimeSinceStartup;
+        PriorityQueue<Node> frontier = new PriorityQueue<Node>();
+        HashSet<Node> visited = new HashSet<Node>();
+
+        // Set priority based on heuristic (distance to end)
+        startNode.priority = graphController.GetNodeDistance(startNode, endNode);
+        frontier.Enqueue(startNode);
+
+        while (frontier.Count > 0)
+        {
+            Node currentNode = frontier.Dequeue();
+            if (currentNode == endNode)
+            {
+                processingTime = Time.realtimeSinceStartup - startTime;
+                yield break;
+            }
+            visited.Add(currentNode);
+            foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+            {
+                if (!visited.Contains(neighbor) && neighbor.isPassable)
+                {
+                    neighbor.parentNode = currentNode;
+
+                    // Heuristic only (Greedy Best-First Search)
+                    neighbor.priority = graphController.GetNodeDistance(neighbor, endNode);
+
+                    frontier.Enqueue(neighbor);
+                }
+            }
+        }
+        processingTime = Time.realtimeSinceStartup - startTime;
+        yield return null;
+    }
+
 
     private IEnumerator IDAStar()
     {
-        float startTime = Time.realtimeSinceStartup;
-        yield return null;
-
         float heuristic(Node n) => graphController.GetNodeDistance(n, endNode);
 
         foreach (Node node in graphController.graph)
@@ -468,7 +628,6 @@ public class PathFinder : MonoBehaviour
                     path.Add(startNode);
                     DrawPathLine(path);
                     hasCompleted = true;
-                    processingTime = Time.realtimeSinceStartup - startTime;
                     yield break;
                 }
 
@@ -494,7 +653,6 @@ public class PathFinder : MonoBehaviour
             {
                 uiController.ShowPopup("Pathfinding Error", "No path found");
                 hasCompleted = true;
-                processingTime = Time.realtimeSinceStartup - startTime;
                 yield break;
             }
 
@@ -502,18 +660,85 @@ public class PathFinder : MonoBehaviour
         }
     }
 
-    private IEnumerator IDDFS()
+    private IEnumerator m_IDAStar()
     {
         float startTime = Time.realtimeSinceStartup;
-        yield return null; // Wait for the next frame
+        float heuristic(Node n) => graphController.GetNodeDistance(n, endNode);
 
+        foreach (Node node in graphController.graph)
+        {
+            node.distanceTraveled = Mathf.Infinity;
+            node.parentNode = null;
+        }
+
+        startNode.distanceTraveled = 0;
+        float threshold = heuristic(startNode);
+
+        while (true)
+        {
+            foreach (Node node in graphController.graph)
+            {
+                node.distanceTraveled = Mathf.Infinity;
+                node.parentNode = null;
+            }
+
+            startNode.distanceTraveled = 0;
+
+            float minThreshold = Mathf.Infinity;
+            Stack<Node> frontier = new Stack<Node>();
+            frontier.Push(startNode);
+
+            while (frontier.Count > 0)
+            {
+                Node currentNode = frontier.Pop();
+                if (currentNode == endNode)
+                {
+                    processingTime = Time.realtimeSinceStartup - startTime;
+                    yield break;
+                }
+
+                float f = currentNode.distanceTraveled + heuristic(currentNode);
+                if (f > threshold + 0.0001f)
+                {
+                    minThreshold = Mathf.Min(minThreshold, f);
+                    continue;
+                }
+
+                foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+                {
+                    if (!neighbor.isPassable) continue;
+
+                    float tentativeG = currentNode.distanceTraveled + graphController.GetNodeDistance(currentNode, neighbor);
+
+                    if (tentativeG < neighbor.distanceTraveled - 0.0001f)
+                    {
+                        neighbor.distanceTraveled = tentativeG;
+                        neighbor.parentNode = currentNode;
+                        frontier.Push(neighbor);
+                    }
+                }
+                processingTime = Time.realtimeSinceStartup - startTime;
+            }
+
+            if (minThreshold == Mathf.Infinity)
+            {
+                uiController.ShowPopup("Pathfinding Error", "No path found");
+                processingTime = Time.realtimeSinceStartup - startTime;
+                yield break;
+            }
+            threshold = minThreshold;
+        }
+    }
+
+    private IEnumerator IDDFS()
+    {
         int depth = 0;
         bool pathFound = false;
         bool allReachableNodesVisited = false;
 
-        int maxDepth = graphController.graph.Length; 
+        int maxDepth = graphController.graph.Length;
 
-        while (!pathFound && !allReachableNodesVisited && depth <= maxDepth )
+        while (!pathFound && !allReachableNodesVisited && depth <= maxDepth)
         {
             foreach (Node node in graphController.graph)
             {
@@ -532,8 +757,6 @@ public class PathFinder : MonoBehaviour
                     break;
                 }
             }
-
-            processingTime = Time.realtimeSinceStartup - startTime;
 
             if (pathFound)
             {
@@ -562,7 +785,6 @@ public class PathFinder : MonoBehaviour
 
                 DrawPathLine(path);
                 hasCompleted = true;
-                processingTime = Time.realtimeSinceStartup - startTime;
                 yield break;
             }
 
@@ -572,7 +794,6 @@ public class PathFinder : MonoBehaviour
 
         uiController.ShowPopup("Pathfinding Error", "No path found");
         hasCompleted = true;
-        processingTime = Time.realtimeSinceStartup - startTime;
     }
 
     private bool DLS(Node currentNode, Node targetNode, int depthLimit, HashSet<Node> visited)
@@ -607,11 +828,66 @@ public class PathFinder : MonoBehaviour
         return false;
     }
 
-    private IEnumerator BidirectionalSearch()
+    private bool m_DLS(Node currentNode, Node targetNode, int depthLimit, HashSet<Node> visited)
+    {
+        if (currentNode == targetNode)
+            return true;
+        if (depthLimit == 0)
+            return false;
+        visited.Add(currentNode);
+        foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+        {
+            if (!neighbor.isPassable || visited.Contains(neighbor)) continue;    
+            neighbor.parentNode = currentNode;
+            bool found = m_DLS(neighbor, targetNode, depthLimit - 1, visited);
+            if (found)
+                return true;
+        }
+        return false;
+    }
+
+
+    private IEnumerator m_IDDFS()
     {
         float startTime = Time.realtimeSinceStartup;
-        yield return null;
+        int depth = 0;
+        bool pathFound = false;
+        bool allReachableNodesVisited = false;
 
+        int maxDepth = graphController.graph.Length;
+
+        while (!pathFound && !allReachableNodesVisited && depth <= maxDepth)
+        {
+            foreach (Node node in graphController.graph)
+            {
+                node.parentNode = null;
+            }
+
+            HashSet<Node> visited = new HashSet<Node>();
+            pathFound = m_DLS(startNode, endNode, depth, visited);
+
+            allReachableNodesVisited = true;
+            foreach (Node node in graphController.graph)
+            {
+                if (node.isPassable && !visited.Contains(node))
+                {
+                    allReachableNodesVisited = false;
+                    break;
+                }
+            }
+
+            if (pathFound)
+            {
+                processingTime = Time.realtimeSinceStartup - startTime;
+                yield break;
+            }
+            depth++;
+        }
+        processingTime = Time.realtimeSinceStartup - startTime;
+    }
+
+    private IEnumerator BidirectionalSearch()
+    {
         Queue<Node> frontierStart = new Queue<Node>();
         Queue<Node> frontierEnd = new Queue<Node>();
         Dictionary<Node, Node> parentStart = new Dictionary<Node, Node>();
@@ -677,7 +953,6 @@ public class PathFinder : MonoBehaviour
             }
 
             numOfNodesExplored++;
-            processingTime = Time.realtimeSinceStartup - startTime;
             yield return new WaitForSeconds(delayForEachIteration);
         }
 
@@ -713,7 +988,73 @@ public class PathFinder : MonoBehaviour
 
         DrawPathLine(path);
         hasCompleted = true;
+    }
+
+    private IEnumerator m_BidirectionalSearch()
+    {
+        float startTime = Time.realtimeSinceStartup;
+        Queue<Node> frontierStart = new Queue<Node>();
+        Queue<Node> frontierEnd = new Queue<Node>();
+        Dictionary<Node, Node> parentStart = new Dictionary<Node, Node>();
+        Dictionary<Node, Node> parentEnd = new Dictionary<Node, Node>();
+        HashSet<Node> visitedStart = new HashSet<Node>();
+        HashSet<Node> visitedEnd = new HashSet<Node>();
+
+        frontierStart.Enqueue(startNode);
+        frontierEnd.Enqueue(endNode);
+        parentStart[startNode] = null;
+        parentEnd[endNode] = null;
+
+        Node meetingNode = null;
+
+        while (frontierStart.Count > 0 && frontierEnd.Count > 0)
+        {
+            // Search from start
+            Node currentStart = frontierStart.Dequeue();
+            visitedStart.Add(currentStart);
+            foreach (Node neighbor in graphController.GetNeighbors(currentStart))
+            {
+                if (!visitedStart.Contains(neighbor) && neighbor.isPassable)
+                {
+                    if (!parentStart.ContainsKey(neighbor))
+                    {
+                        parentStart[neighbor] = currentStart;
+                        frontierStart.Enqueue(neighbor);
+                    }
+                    if (visitedEnd.Contains(neighbor))
+                    {
+                        meetingNode = neighbor;
+                        goto ConstructPath;
+                    }
+                }
+            }
+
+            // Search from end
+            Node currentEnd = frontierEnd.Dequeue();
+            visitedEnd.Add(currentEnd);
+            foreach (Node neighbor in graphController.GetNeighbors(currentEnd))
+            {
+                if (!visitedEnd.Contains(neighbor) && neighbor.isPassable)
+                {
+                    if (!parentEnd.ContainsKey(neighbor))
+                    {
+                        parentEnd[neighbor] = currentEnd;
+                        frontierEnd.Enqueue(neighbor);
+                    }
+                    if (visitedStart.Contains(neighbor))
+                    {
+                        meetingNode = neighbor;
+                        goto ConstructPath;
+                    }
+                }
+            }
+        }
         processingTime = Time.realtimeSinceStartup - startTime;
+        yield break;
+
+    ConstructPath:
+        processingTime = Time.realtimeSinceStartup - startTime;
+        yield return null;
     }
     public void ResetPathFinding()
     {

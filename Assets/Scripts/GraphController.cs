@@ -92,13 +92,11 @@ public class GraphController : MonoBehaviour
     }
 
     // Returns a list of neighboring nodes for the given node
-    public List<Node> GetNeighbors(Node node, bool isRandomDirections = false)
+    public List<Node> GetNeighbors(Node node)
     {
         List<Node> neighbors = new List<Node>();
         Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right,
                                      new Vector2Int(1, 1), new Vector2Int(-1, -1), new Vector2Int(1, -1), new Vector2Int(-1, 1) };
-
-        if (isRandomDirections) Ultility.RandomizeArray(directions);
         foreach (var direction in directions)
         {
             Node neighbor = GetNode(node.graphPosition + direction);

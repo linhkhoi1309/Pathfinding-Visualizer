@@ -14,7 +14,6 @@ public class UIController : MonoBehaviour
 
     [SerializeField] private TMP_Dropdown mazeDropdown;
     [SerializeField] private AudioClip buttonClickSound;
-
     [SerializeField] private GameObject popupPrefab;
     PathFinder pathFinder;
     GraphController graphController;
@@ -64,7 +63,7 @@ public class UIController : MonoBehaviour
 
     private void OnAlgorithmDropdownSelected(int index)
     {
-        pathFinder.ResetPathFindingConfigs();
+        pathFinder.ResetPathFinding();
         switch (index)
         {
             case 0:
@@ -108,7 +107,7 @@ public class UIController : MonoBehaviour
 
     private void UpdateProcessingTime(float processingTime)
     {
-        processingTimeText.text = "Processing time: " + processingTime.ToString("F2") + " secs";
+        processingTimeText.text = "Processing time: " + processingTime.ToString("F5") + " secs";
     }
 
     public void UpdateNumOfNodesExplored(int num)
