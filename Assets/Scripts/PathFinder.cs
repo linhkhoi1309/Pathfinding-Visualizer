@@ -28,6 +28,7 @@ public class PathFinder : MonoBehaviour
     [HideInInspector] public int numOfNodesExplored = 0;
     [HideInInspector] public float totalCost = 0;
     [HideInInspector] public float processingTime = 0f;
+    [HideInInspector] public long memoryUsage = 0;
 
     private UIController uiController;
 
@@ -142,10 +143,10 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator m_DFS()
     {
+        long memBefore = System.GC.GetTotalMemory(true);
         float startTime = Time.realtimeSinceStartup;
         Stack<Node> frontier = new Stack<Node>();
         HashSet<Node> visited = new HashSet<Node>();
-        List<Node> path = new List<Node>();
         frontier.Push(startNode);
         startNode.parentNode = null;
         while (frontier.Count > 0)
@@ -154,6 +155,7 @@ public class PathFinder : MonoBehaviour
             if (currentNode == endNode)
             {
                 processingTime = Time.realtimeSinceStartup - startTime;
+                memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                 yield break;
             }
             visited.Add(currentNode);
@@ -167,6 +169,7 @@ public class PathFinder : MonoBehaviour
             }
         }
         processingTime = Time.realtimeSinceStartup - startTime;
+        memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
         yield return null;
     }
 
@@ -227,10 +230,10 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator m_BFS()
     {
+        long memBefore = System.GC.GetTotalMemory(true);
         float startTime = Time.realtimeSinceStartup;
         Queue<Node> frontier = new Queue<Node>();
         HashSet<Node> visited = new HashSet<Node>();
-        List<Node> path = new List<Node>();
         frontier.Enqueue(startNode);
         visited.Add(startNode);
         startNode.parentNode = null;
@@ -240,6 +243,7 @@ public class PathFinder : MonoBehaviour
             if (currentNode == endNode)
             {
                 processingTime = Time.realtimeSinceStartup - startTime;
+                memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                 yield break;
             }
             foreach (Node neighbor in graphController.GetNeighbors(currentNode))
@@ -253,6 +257,7 @@ public class PathFinder : MonoBehaviour
             }
         }
         processingTime = Time.realtimeSinceStartup - startTime;
+        memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
         yield return null;
     }
 
@@ -326,6 +331,7 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator m_UCS()
     {
+        long memBefore = System.GC.GetTotalMemory(true);
         float startTime = Time.realtimeSinceStartup;
         foreach (Node node in graphController.graph)
             node.distanceTraveled = Mathf.Infinity;
@@ -343,6 +349,7 @@ public class PathFinder : MonoBehaviour
             if (currentNode == endNode)
             {
                 processingTime = Time.realtimeSinceStartup - startTime;
+                memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                 yield break;
             }
             visited.Add(currentNode);
@@ -364,6 +371,7 @@ public class PathFinder : MonoBehaviour
             }
         }
         processingTime = Time.realtimeSinceStartup - startTime;
+        memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
     }
 
     private IEnumerator AStar()
@@ -426,6 +434,7 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator m_AStar()
     {
+        long memBefore = System.GC.GetTotalMemory(true);
         float startTime = Time.realtimeSinceStartup;
         foreach (Node node in graphController.graph)
             node.distanceTraveled = Mathf.Infinity;
@@ -439,6 +448,7 @@ public class PathFinder : MonoBehaviour
             if (currentNode == endNode)
             {
                 processingTime = Time.realtimeSinceStartup - startTime;
+                memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                 yield break;
             }
             visited.Add(currentNode);
@@ -461,6 +471,7 @@ public class PathFinder : MonoBehaviour
             }
         }
         processingTime = Time.realtimeSinceStartup - startTime;
+        memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
     }
 
     private IEnumerator GreedyBestFirstSearch()
@@ -528,6 +539,7 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator m_GreedyBestFirstSearch()
     {
+        long memBefore = System.GC.GetTotalMemory(true);
         float startTime = Time.realtimeSinceStartup;
         PriorityQueue<Node> frontier = new PriorityQueue<Node>();
         HashSet<Node> visited = new HashSet<Node>();
@@ -542,6 +554,7 @@ public class PathFinder : MonoBehaviour
             if (currentNode == endNode)
             {
                 processingTime = Time.realtimeSinceStartup - startTime;
+                memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                 yield break;
             }
             visited.Add(currentNode);
@@ -559,6 +572,7 @@ public class PathFinder : MonoBehaviour
             }
         }
         processingTime = Time.realtimeSinceStartup - startTime;
+        memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
         yield return null;
     }
 
@@ -662,6 +676,7 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator m_IDAStar()
     {
+        long memBefore = System.GC.GetTotalMemory(true);
         float startTime = Time.realtimeSinceStartup;
         float heuristic(Node n) => graphController.GetNodeDistance(n, endNode);
 
@@ -694,6 +709,7 @@ public class PathFinder : MonoBehaviour
                 if (currentNode == endNode)
                 {
                     processingTime = Time.realtimeSinceStartup - startTime;
+                    memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                     yield break;
                 }
 
@@ -717,13 +733,12 @@ public class PathFinder : MonoBehaviour
                         frontier.Push(neighbor);
                     }
                 }
-                processingTime = Time.realtimeSinceStartup - startTime;
             }
 
             if (minThreshold == Mathf.Infinity)
             {
-                uiController.ShowPopup("Pathfinding Error", "No path found");
                 processingTime = Time.realtimeSinceStartup - startTime;
+                memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                 yield break;
             }
             threshold = minThreshold;
@@ -811,7 +826,7 @@ public class PathFinder : MonoBehaviour
         {
             if (!neighbor.isPassable || visited.Contains(neighbor))
                 continue;
-                
+
             neighbor.parentNode = currentNode;
 
             if (neighbor != targetNode)
@@ -837,7 +852,7 @@ public class PathFinder : MonoBehaviour
         visited.Add(currentNode);
         foreach (Node neighbor in graphController.GetNeighbors(currentNode))
         {
-            if (!neighbor.isPassable || visited.Contains(neighbor)) continue;    
+            if (!neighbor.isPassable || visited.Contains(neighbor)) continue;
             neighbor.parentNode = currentNode;
             bool found = m_DLS(neighbor, targetNode, depthLimit - 1, visited);
             if (found)
@@ -849,6 +864,7 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator m_IDDFS()
     {
+        long memBefore = System.GC.GetTotalMemory(true);
         float startTime = Time.realtimeSinceStartup;
         int depth = 0;
         bool pathFound = false;
@@ -879,11 +895,13 @@ public class PathFinder : MonoBehaviour
             if (pathFound)
             {
                 processingTime = Time.realtimeSinceStartup - startTime;
+                memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                 yield break;
             }
             depth++;
         }
         processingTime = Time.realtimeSinceStartup - startTime;
+        memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
     }
 
     private IEnumerator BidirectionalSearch()
@@ -992,6 +1010,7 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator m_BidirectionalSearch()
     {
+        long memBefore = System.GC.GetTotalMemory(true);
         float startTime = Time.realtimeSinceStartup;
         Queue<Node> frontierStart = new Queue<Node>();
         Queue<Node> frontierEnd = new Queue<Node>();
@@ -1050,10 +1069,12 @@ public class PathFinder : MonoBehaviour
             }
         }
         processingTime = Time.realtimeSinceStartup - startTime;
+        memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
         yield break;
 
     ConstructPath:
         processingTime = Time.realtimeSinceStartup - startTime;
+        memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
         yield return null;
     }
     public void ResetPathFinding()
@@ -1070,6 +1091,7 @@ public class PathFinder : MonoBehaviour
         numOfNodesExplored = 0;
         totalCost = 0;
         processingTime = 0f;
+        memoryUsage = 0;
     }
 
     private void DrawPathLine(List<Node> path)

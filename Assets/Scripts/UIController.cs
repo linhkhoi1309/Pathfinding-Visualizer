@@ -9,6 +9,7 @@ public class UIController : MonoBehaviour
     [SerializeField] private Button visualizeButton;
     [SerializeField] private TextMeshProUGUI processingTimeText;
     [SerializeField] private TextMeshProUGUI numOfNodesExploredText;
+    [SerializeField] private TextMeshProUGUI memoryUsageText;
     [SerializeField] private TextMeshProUGUI totalCostText;
     [SerializeField] private TMP_Dropdown algorithmDropdown;
 
@@ -63,7 +64,6 @@ public class UIController : MonoBehaviour
 
     private void OnAlgorithmDropdownSelected(int index)
     {
-        pathFinder.ResetPathFinding();
         switch (index)
         {
             case 0:
@@ -103,16 +103,21 @@ public class UIController : MonoBehaviour
         UpdateNumOfNodesExplored(pathFinder.numOfNodesExplored);
         UpdateProcessingTime(pathFinder.processingTime);
         UpdateTotalCost(pathFinder.totalCost);
+        UpdateMemoryUsage(pathFinder.memoryUsage);
     }
 
     private void UpdateProcessingTime(float processingTime)
     {
-        processingTimeText.text = "Processing time: " + processingTime.ToString("F5") + " secs";
+        processingTimeText.text = "Processing time: " + processingTime.ToString("F5") + " s";
     }
 
     public void UpdateNumOfNodesExplored(int num)
     {
         numOfNodesExploredText.text = "Number of nodes explored: " + num;
+    }
+    public void UpdateMemoryUsage(long memoryUsage)
+    {
+        memoryUsageText.text = "Memory usage: " + memoryUsage.ToString() + " B";
     }
 
     public void UpdateTotalCost(float cost)
