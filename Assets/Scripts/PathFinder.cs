@@ -747,160 +747,153 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator IDDFS()
     {
-        int depth = 0;
-        bool pathFound = false;
-        bool allReachableNodesVisited = false;
-
-        int maxDepth = graphController.graph.Length;
-
-        while (!pathFound && !allReachableNodesVisited && depth <= maxDepth)
+        int depthLimit = 0;
+        bool found = false;
+        HashSet<Node> visited = new HashSet<Node>();
+        Stack<Node> frontier = new Stack<Node>();
+       
+        while (!found)
         {
-            foreach (Node node in graphController.graph)
+            // Reset visited and parent nodes for each iteration
+            List<Node> path = new List<Node>();
+            visited.Clear();
+            frontier.Clear();
+            frontier.Push(startNode);
+            startNode.parentNode = null;
+            visited.Add(startNode);
+            
+            // Perform depth-limited DFS
+            while (frontier.Count > 0 && !found)
             {
-                node.parentNode = null;
-            }
-
-            HashSet<Node> visited = new HashSet<Node>();
-            pathFound = DLS(startNode, endNode, depth, visited);
-
-            allReachableNodesVisited = true;
-            foreach (Node node in graphController.graph)
-            {
-                if (node.isPassable && !visited.Contains(node))
+                Node currentNode = frontier.Pop();
+                numOfNodesExplored++;
+                
+                // Color the visited nodes
+                if (currentNode != startNode && currentNode != endNode)
+                    graphController.ColorNode(currentNode.graphPosition, graphController.visitedTileSprite);
+                
+                if (currentNode == endNode)
                 {
-                    allReachableNodesVisited = false;
-                    break;
-                }
-            }
-
-            if (pathFound)
-            {
-                List<Node> path = new List<Node>();
-                Node pathNode = endNode;
-                totalCost = 0;
-
-                while (pathNode != null)
-                {
-                    path.Add(pathNode);
-                    if (pathNode.parentNode != null)
-                        totalCost += graphController.GetNodeDistance(pathNode.parentNode, pathNode);
-                    pathNode = pathNode.parentNode;
-                }
-
-                path.Reverse();
-
-                foreach (Node node in path)
-                {
-                    if (node != startNode && node != endNode)
+                    found = true;
+                    // Reconstruct path
+                    Node pathNode = endNode.parentNode;
+                    path.Add(endNode);
+                    totalCost += graphController.GetNodeDistance(pathNode, endNode);
+                    
+                    while (pathNode != null && pathNode != startNode)
                     {
-                        graphController.ColorNode(node.graphPosition, graphController.pathTileSprite);
+                        totalCost += graphController.GetNodeDistance(pathNode.parentNode, pathNode);
+                        graphController.ColorNode(pathNode.graphPosition, graphController.pathTileSprite);
+                        path.Add(pathNode);
+                        pathNode = pathNode.parentNode;
                         yield return new WaitForSeconds(delayForEachIteration);
                     }
+                    
+                    path.Add(startNode);
+                    DrawPathLine(path);
+                    hasCompleted = true;
+                    yield break;
                 }
-
-                DrawPathLine(path);
-                hasCompleted = true;
-                yield break;
+                
+                // Only explore neighbors if we haven't reached depth limit
+                if (GetNodeDepth(currentNode) < depthLimit)
+                {
+                    foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+                    {
+                        if (!visited.Contains(neighbor) && neighbor.isPassable)
+                        {
+                            frontier.Push(neighbor);
+                            neighbor.parentNode = currentNode;
+                            visited.Add(neighbor);
+                            
+                            // Color the frontier nodes
+                            if (neighbor != endNode)
+                                graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
+                        }
+                    }
+                }
+                
+                yield return new WaitForSeconds(delayForEachIteration);
             }
 
-            depth++;
-            yield return new WaitForSeconds(delayForEachIteration);
+            depthLimit++;
+            
+            // Safety check to prevent infinite loop
+            if (depthLimit > 62)
+            {
+                uiController.ShowPopup("Pathfinding Error", "No path found within maximum depth");
+                yield break;
+            }
         }
-
-        uiController.ShowPopup("Pathfinding Error", "No path found");
-        hasCompleted = true;
     }
-
-    private bool DLS(Node currentNode, Node targetNode, int depthLimit, HashSet<Node> visited)
-    {
-        numOfNodesExplored++;
-        if (currentNode == targetNode)
-            return true;
-
-        if (depthLimit == 0)
-            return false;
-
-        visited.Add(currentNode);
-
-        foreach (Node neighbor in graphController.GetNeighbors(currentNode))
-        {
-            if (!neighbor.isPassable || visited.Contains(neighbor))
-                continue;
-
-            neighbor.parentNode = currentNode;
-
-            if (neighbor != targetNode)
-                graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
-
-            bool found = DLS(neighbor, targetNode, depthLimit - 1, visited);
-            if (found)
-                return true;
-        }
-
-        if (currentNode != startNode && currentNode != targetNode)
-            graphController.ColorNode(currentNode.graphPosition, graphController.visitedTileSprite);
-
-        return false;
-    }
-
-    private bool m_DLS(Node currentNode, Node targetNode, int depthLimit, HashSet<Node> visited)
-    {
-        if (currentNode == targetNode)
-            return true;
-        if (depthLimit == 0)
-            return false;
-        visited.Add(currentNode);
-        foreach (Node neighbor in graphController.GetNeighbors(currentNode))
-        {
-            if (!neighbor.isPassable || visited.Contains(neighbor)) continue;
-            neighbor.parentNode = currentNode;
-            bool found = m_DLS(neighbor, targetNode, depthLimit - 1, visited);
-            if (found)
-                return true;
-        }
-        return false;
-    }
-
     private IEnumerator m_IDDFS()
     {
-        long memBefore = System.GC.GetTotalMemory(true);
+         // Ensure clean state before test
+        System.GC.Collect();
+        System.GC.WaitForPendingFinalizers();
+        long startMemory = System.GC.GetTotalMemory(true);
         float startTime = Time.realtimeSinceStartup;
-        int depth = 0;
-        bool pathFound = false;
-        bool allReachableNodesVisited = false;
+        int depthLimit = 0;
+        bool found = false;
+        HashSet<Node> visited = new HashSet<Node>();
+        Stack<Node> frontier = new Stack<Node>();
 
-        int maxDepth = graphController.graph.Length;
-
-        while (!pathFound && !allReachableNodesVisited && depth <= maxDepth)
+        while (!found)
         {
+            visited.Clear();
+            frontier.Clear();
+
             foreach (Node node in graphController.graph)
             {
                 node.parentNode = null;
             }
 
-            HashSet<Node> visited = new HashSet<Node>();
-            pathFound = m_DLS(startNode, endNode, depth, visited);
-
-            allReachableNodesVisited = true;
-            foreach (Node node in graphController.graph)
+            frontier.Push(startNode);
+            startNode.parentNode = null;
+            visited.Add(startNode);
+            while (frontier.Count > 0 && !found)
             {
-                if (node.isPassable && !visited.Contains(node))
+                Node currentNode = frontier.Pop();
+                
+                if (currentNode == endNode)
                 {
-                    allReachableNodesVisited = false;
-                    break;
+                    found = true;
+                    processingTime = Time.realtimeSinceStartup - startTime;
+                    System.GC.Collect();
+                    System.GC.WaitForPendingFinalizers();
+                    long endMemory = System.GC.GetTotalMemory(true);
+
+                    memoryUsage = endMemory - startMemory;
+                    yield break;
+                }
+                
+                if (GetNodeDepth(currentNode) < depthLimit)
+                {
+                    foreach (Node neighbor in graphController.GetNeighbors(currentNode))
+                    {
+                        if (!visited.Contains(neighbor) && neighbor.isPassable)
+                        {
+                            frontier.Push(neighbor);
+                            neighbor.parentNode = currentNode;
+                            visited.Add(neighbor);
+                        }
+                    }
                 }
             }
 
-            if (pathFound)
+            depthLimit++;
+    
+            if (depthLimit > 62)
             {
                 processingTime = Time.realtimeSinceStartup - startTime;
-                memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
+                System.GC.Collect();
+                System.GC.WaitForPendingFinalizers();
+                long endMemory = System.GC.GetTotalMemory(true);
+                memoryUsage = endMemory - startMemory;  
                 yield break;
             }
-            depth++;
+
         }
-        processingTime = Time.realtimeSinceStartup - startTime;
-        memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
     }
 
     private IEnumerator BidirectionalSearch()
@@ -1104,5 +1097,16 @@ public class PathFinder : MonoBehaviour
         }
         lineRenderer.positionCount = positions.Length;
         lineRenderer.SetPositions(positions);
+    }
+
+    private int GetNodeDepth(Node node)
+    {
+        int depth = 0;
+        while (node.parentNode != null)
+        {
+            depth++;
+            node = node.parentNode;
+        }
+        return depth;
     }
 }
