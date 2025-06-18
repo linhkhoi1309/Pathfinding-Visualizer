@@ -828,10 +828,7 @@ public class PathFinder : MonoBehaviour
     }
     private IEnumerator m_IDDFS()
     {
-         // Ensure clean state before test
-        System.GC.Collect();
-        System.GC.WaitForPendingFinalizers();
-        long startMemory = System.GC.GetTotalMemory(true);
+        long memBefore = System.GC.GetTotalMemory(true);
         float startTime = Time.realtimeSinceStartup;
         int depthLimit = 0;
         bool found = false;
@@ -842,7 +839,6 @@ public class PathFinder : MonoBehaviour
         {
             visited.Clear();
             frontier.Clear();
-
             foreach (Node node in graphController.graph)
             {
                 node.parentNode = null;
@@ -859,11 +855,7 @@ public class PathFinder : MonoBehaviour
                 {
                     found = true;
                     processingTime = Time.realtimeSinceStartup - startTime;
-                    System.GC.Collect();
-                    System.GC.WaitForPendingFinalizers();
-                    long endMemory = System.GC.GetTotalMemory(true);
-
-                    memoryUsage = endMemory - startMemory;
+                    memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                     yield break;
                 }
                 
@@ -880,16 +872,11 @@ public class PathFinder : MonoBehaviour
                     }
                 }
             }
-
             depthLimit++;
-    
             if (depthLimit > 62)
             {
                 processingTime = Time.realtimeSinceStartup - startTime;
-                System.GC.Collect();
-                System.GC.WaitForPendingFinalizers();
-                long endMemory = System.GC.GetTotalMemory(true);
-                memoryUsage = endMemory - startMemory;  
+                memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                 yield break;
             }
 
