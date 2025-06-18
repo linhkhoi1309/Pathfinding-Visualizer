@@ -11,6 +11,8 @@ public class UIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI numOfNodesExploredText;
     [SerializeField] private TextMeshProUGUI memoryUsageText;
     [SerializeField] private TextMeshProUGUI totalCostText;
+    [SerializeField] private TextMeshProUGUI delayForEachIterationText;
+    [SerializeField] private Slider delayForEachIterationSlider;
     [SerializeField] private TMP_Dropdown algorithmDropdown;
 
     [SerializeField] private TMP_Dropdown mazeDropdown;
@@ -26,8 +28,15 @@ public class UIController : MonoBehaviour
         visualizeButton.onClick.AddListener(OnVisualizeButtonClicked);
         algorithmDropdown.onValueChanged.AddListener(OnAlgorithmDropdownSelected);
         mazeDropdown.onValueChanged.AddListener(OnMazeDropdownSelected);
+        delayForEachIterationSlider.onValueChanged.AddListener(OnDelayForEachIterationChanged);
         pathFinder = FindFirstObjectByType<PathFinder>();
         graphController = FindFirstObjectByType<GraphController>();
+    }
+
+    private void OnDelayForEachIterationChanged(float val)
+    {
+        pathFinder.delayForEachIteration = val;
+        delayForEachIterationText.text = "Delay / iteration: " + val.ToString("F2") + " s";
     }
 
     private void Start()

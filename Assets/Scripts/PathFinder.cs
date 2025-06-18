@@ -861,7 +861,6 @@ public class PathFinder : MonoBehaviour
         return false;
     }
 
-
     private IEnumerator m_IDDFS()
     {
         long memBefore = System.GC.GetTotalMemory(true);
