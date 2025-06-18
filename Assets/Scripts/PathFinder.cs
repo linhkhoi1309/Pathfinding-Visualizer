@@ -579,7 +579,7 @@ public class PathFinder : MonoBehaviour
 
     private IEnumerator IDAStar()
     {
-        float heuristic(Node n) => graphController.GetNodeDistance(n, endNode);
+        float Heuristic(Node n) => graphController.GetNodeDistance(n, endNode);
 
         foreach (Node node in graphController.graph)
         {
@@ -588,31 +588,30 @@ public class PathFinder : MonoBehaviour
         }
 
         startNode.distanceTraveled = 0;
-        float threshold = heuristic(startNode);
+        float threshold = Heuristic(startNode);
+
+        Stack<(Node node, float g)> frontier = new Stack<(Node, float)>();
+        HashSet<Node> visited = new HashSet<Node>();
+        HashSet<Node> nodesToReset = new HashSet<Node>();
 
         while (true)
         {
-            foreach (Node node in graphController.graph)
-            {
-                node.distanceTraveled = Mathf.Infinity;
-                node.parentNode = null;
-            }
-
-            startNode.distanceTraveled = 0;
+            frontier.Clear();
+            visited.Clear();
 
             float minThreshold = Mathf.Infinity;
-            Stack<Node> frontier = new Stack<Node>();
-            //HashSet<Node> visited = new HashSet<Node>();
-            frontier.Push(startNode);
-            //visited.Add(startNode);
+            
+            frontier.Push((startNode, 0));
+            visited.Add(startNode);
 
             while (frontier.Count > 0)
             {
-                Node currentNode = frontier.Pop();
+                var (currentNode, g) = frontier.Pop();
                 numOfNodesExplored++;
+                visited.Remove(currentNode);
 
-                float f = currentNode.distanceTraveled + heuristic(currentNode);
-                if (f > threshold + 0.0001f)
+                float f = g + Heuristic(currentNode);
+                if (f > threshold + 0.01f)
                 {
                     minThreshold = Mathf.Min(minThreshold, f);
                     if (currentNode != endNode)
@@ -647,16 +646,17 @@ public class PathFinder : MonoBehaviour
 
                 foreach (Node neighbor in graphController.GetNeighbors(currentNode))
                 {
-                    if (!neighbor.isPassable) continue;
+                    if (!neighbor.isPassable || visited.Contains(neighbor)) continue;
 
-                    float tentativeG = currentNode.distanceTraveled + graphController.GetNodeDistance(currentNode, neighbor);
+                    float tentativeG = g + graphController.GetNodeDistance(currentNode, neighbor);
 
-                    if (tentativeG < neighbor.distanceTraveled - 0.0001f)
+                    if (tentativeG < neighbor.distanceTraveled - 0.01f)
                     {
                         neighbor.distanceTraveled = tentativeG;
                         neighbor.parentNode = currentNode;
-                        frontier.Push(neighbor);
-                        //visited.Add(neighbor);
+                        frontier.Push((neighbor, tentativeG));
+                        visited.Add(neighbor);
+                        nodesToReset.Add(neighbor);
                     }
                 }
 
@@ -671,6 +671,15 @@ public class PathFinder : MonoBehaviour
             }
 
             threshold = minThreshold;
+
+            foreach (Node node in nodesToReset)
+            {
+                node.distanceTraveled = Mathf.Infinity;
+                node.parentNode = null;
+            }
+            nodesToReset.Clear();
+
+            startNode.distanceTraveled = 0;
         }
     }
 
@@ -678,7 +687,7 @@ public class PathFinder : MonoBehaviour
     {
         long memBefore = System.GC.GetTotalMemory(true);
         float startTime = Time.realtimeSinceStartup;
-        float heuristic(Node n) => graphController.GetNodeDistance(n, endNode);
+        float Heuristic(Node n) => graphController.GetNodeDistance(n, endNode);
 
         foreach (Node node in graphController.graph)
         {
@@ -687,25 +696,34 @@ public class PathFinder : MonoBehaviour
         }
 
         startNode.distanceTraveled = 0;
-        float threshold = heuristic(startNode);
+        float threshold = Heuristic(startNode);
+
+        Stack<(Node node, float g)> frontier = new Stack<(Node, float)>();
+        HashSet<Node> visited = new HashSet<Node>();
+        HashSet<Node> nodesToReset = new HashSet<Node>();
 
         while (true)
         {
-            foreach (Node node in graphController.graph)
-            {
-                node.distanceTraveled = Mathf.Infinity;
-                node.parentNode = null;
-            }
-
-            startNode.distanceTraveled = 0;
+            frontier.Clear();
+            visited.Clear();
 
             float minThreshold = Mathf.Infinity;
-            Stack<Node> frontier = new Stack<Node>();
-            frontier.Push(startNode);
+            
+            frontier.Push((startNode, 0));
+            visited.Add(startNode);
 
             while (frontier.Count > 0)
             {
-                Node currentNode = frontier.Pop();
+                var (currentNode, g) = frontier.Pop();
+                visited.Remove(currentNode);
+
+                float f = g + Heuristic(currentNode);
+                if (f > threshold + 0.01f)
+                {
+                    minThreshold = Mathf.Min(minThreshold, f);
+                    continue;
+                }
+
                 if (currentNode == endNode)
                 {
                     processingTime = Time.realtimeSinceStartup - startTime;
@@ -713,24 +731,19 @@ public class PathFinder : MonoBehaviour
                     yield break;
                 }
 
-                float f = currentNode.distanceTraveled + heuristic(currentNode);
-                if (f > threshold + 0.0001f)
-                {
-                    minThreshold = Mathf.Min(minThreshold, f);
-                    continue;
-                }
-
                 foreach (Node neighbor in graphController.GetNeighbors(currentNode))
                 {
-                    if (!neighbor.isPassable) continue;
+                    if (!neighbor.isPassable || visited.Contains(neighbor)) continue;
 
-                    float tentativeG = currentNode.distanceTraveled + graphController.GetNodeDistance(currentNode, neighbor);
+                    float tentativeG = g + graphController.GetNodeDistance(currentNode, neighbor);
 
-                    if (tentativeG < neighbor.distanceTraveled - 0.0001f)
+                    if (tentativeG < neighbor.distanceTraveled - 0.01f)
                     {
                         neighbor.distanceTraveled = tentativeG;
                         neighbor.parentNode = currentNode;
-                        frontier.Push(neighbor);
+                        frontier.Push((neighbor, tentativeG));
+                        visited.Add(neighbor);
+                        nodesToReset.Add(neighbor);
                     }
                 }
             }
@@ -741,7 +754,17 @@ public class PathFinder : MonoBehaviour
                 memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                 yield break;
             }
+
             threshold = minThreshold;
+
+            foreach (Node node in nodesToReset)
+            {
+                node.distanceTraveled = Mathf.Infinity;
+                node.parentNode = null;
+            }
+            nodesToReset.Clear();
+
+            startNode.distanceTraveled = 0;
         }
     }
 

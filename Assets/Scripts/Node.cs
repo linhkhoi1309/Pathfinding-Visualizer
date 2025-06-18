@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Node : IComparable<Node>
 {
@@ -9,6 +10,9 @@ public class Node : IComparable<Node>
     public float priority;
     public float distanceTraveled = 0f; // Distance traveled from the start node to this node
     public bool preserved = false; // Indicates if the node is preserved (cannot be cleared when resetting)
+    
+    public List<Node> neighbors { get; } = new List<Node>();
+    
     public Node(Vector2Int graphPosition)
     {
         this.graphPosition = graphPosition;
@@ -20,5 +24,10 @@ public class Node : IComparable<Node>
         if (priority < other.priority) return -1;
         else if (priority > other.priority) return 1;
         else return 0;
+    }
+
+    public void ClearNeighbors()
+    {
+        neighbors.Clear();
     }
 }

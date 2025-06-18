@@ -94,15 +94,7 @@ public class GraphController : MonoBehaviour
     // Returns a list of neighboring nodes for the given node
     public List<Node> GetNeighbors(Node node)
     {
-        List<Node> neighbors = new List<Node>();
-        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right,
-                                     new Vector2Int(1, 1), new Vector2Int(-1, -1), new Vector2Int(1, -1), new Vector2Int(-1, 1) };
-        foreach (var direction in directions)
-        {
-            Node neighbor = GetNode(node.graphPosition + direction);
-            if (neighbor != null) neighbors.Add(neighbor);
-        }
-        return neighbors;
+        return node.neighbors;
     }
 
     // Colors all nodes in the list with the specified sprite
@@ -214,5 +206,27 @@ public class GraphController : MonoBehaviour
         if (endNode != null && !endNode.preserved) endNode = null;
         currentTilemapTag = tilemapTag;
         InitializeGraph();
+        CacheAllNodeNeighbors();
+    }
+
+    public void CacheAllNodeNeighbors()
+    {
+        foreach (Node node in graph) 
+        {
+            node.ClearNeighbors();
+
+            Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right,
+                                        new Vector2Int(1, 1), new Vector2Int(-1, -1), new Vector2Int(1, -1), new Vector2Int(-1, 1) };
+
+            foreach (var direction in directions)
+            {
+                Node neighbor = GetNode(node.graphPosition + direction);
+
+                if (neighbor != null)
+                {
+                    node.neighbors.Add(neighbor);
+                }
+            }
+        }
     }
 }
