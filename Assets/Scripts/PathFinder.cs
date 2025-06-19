@@ -659,6 +659,7 @@ public class PathFinder : MonoBehaviour
                         //visited.Add(neighbor);
                     }
                 }
+                yield return new WaitForSeconds(delayForEachIteration);
             }
             if (minThreshold == Mathf.Infinity)
             {
@@ -666,7 +667,7 @@ public class PathFinder : MonoBehaviour
                 hasCompleted = true;
                 yield break;
             }
-            yield return new WaitForSeconds(delayForEachIteration);
+            
             threshold = minThreshold;
         }
     }
