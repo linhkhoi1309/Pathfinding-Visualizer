@@ -659,17 +659,14 @@ public class PathFinder : MonoBehaviour
                         //visited.Add(neighbor);
                     }
                 }
-
-                yield return new WaitForSeconds(delayForEachIteration);
             }
-
             if (minThreshold == Mathf.Infinity)
             {
                 uiController.ShowPopup("Pathfinding Error", "No path found");
                 hasCompleted = true;
                 yield break;
             }
-
+            yield return new WaitForSeconds(delayForEachIteration);
             threshold = minThreshold;
         }
     }
