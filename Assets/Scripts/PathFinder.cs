@@ -947,7 +947,7 @@ public class PathFinder : MonoBehaviour
                 }
             }
 
-            numOfNodesExplored++;
+            numOfNodesExplored+= 2;
             yield return new WaitForSeconds(delayForEachIteration);
         }
 
