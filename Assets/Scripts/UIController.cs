@@ -150,7 +150,7 @@ public class UIController : MonoBehaviour
     }
     public void UpdateMemoryUsage(long memoryUsage)
     {
-        memoryUsageText.text = "Memory usage: " + memoryUsage.ToString() + " B";
+        memoryUsageText.text = "Memory usage: " + memoryUsage.ToString();
     }
 
     public void UpdateTotalCost(float cost)
