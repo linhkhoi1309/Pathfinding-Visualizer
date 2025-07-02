@@ -29,8 +29,9 @@ public class PathFinder : MonoBehaviour
     [HideInInspector] public float totalCost = 0;
     [HideInInspector] public float processingTime = 0f;
     [HideInInspector] public long memoryUsage = 0;
-
+    public GameObject searchTree;
     private UIController uiController;
+    public bool showSearchTree;
 
     private void Awake()
     {
@@ -129,6 +130,7 @@ public class PathFinder : MonoBehaviour
             {
                 if (!visited.Contains(neighbor) && neighbor.isPassable)
                 {
+                    if (showSearchTree) DrawLine(currentNode, neighbor);
                     frontier.Push(neighbor);
                     neighbor.parentNode = currentNode;
                     // Color the frontier nodes
@@ -215,6 +217,7 @@ public class PathFinder : MonoBehaviour
             {
                 if (!visited.Contains(neighbor) && neighbor.isPassable)
                 {
+                    if (showSearchTree) DrawLine(currentNode, neighbor);
                     neighbor.parentNode = currentNode;
                     frontier.Enqueue(neighbor);
                     visited.Add(neighbor);
@@ -314,6 +317,7 @@ public class PathFinder : MonoBehaviour
 
                     if (float.IsPositiveInfinity(neighbor.distanceTraveled) || newDistanceTraveled < neighbor.distanceTraveled)
                     {
+                        if (showSearchTree) DrawLine(currentNode, neighbor);
                         neighbor.parentNode = currentNode;
                         neighbor.distanceTraveled = newDistanceTraveled;
                         neighbor.priority = neighbor.distanceTraveled;
@@ -421,6 +425,7 @@ public class PathFinder : MonoBehaviour
                         neighbor.distanceTraveled = newDistanceTraveled;
                         float distanceToEndNode = graphController.GetNodeDistance(neighbor, endNode);
                         neighbor.priority = neighbor.distanceTraveled + distanceToEndNode;
+                        if (showSearchTree) DrawLine(currentNode, neighbor);
                         frontier.Enqueue(neighbor);
                         if (neighbor != endNode)
                             graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
@@ -519,6 +524,7 @@ public class PathFinder : MonoBehaviour
             {
                 if (!visited.Contains(neighbor) && neighbor.isPassable)
                 {
+                    if (showSearchTree) DrawLine(currentNode, neighbor);
                     neighbor.parentNode = currentNode;
 
                     // Heuristic only (Greedy Best-First Search)
@@ -615,8 +621,6 @@ public class PathFinder : MonoBehaviour
                 if (f > threshold + 0.0001f)
                 {
                     minThreshold = Mathf.Min(minThreshold, f);
-                    if (currentNode != endNode)
-                        graphController.ColorNode(currentNode.graphPosition, graphController.frontierTileSprite);
                     continue;
                 }
 
@@ -656,6 +660,9 @@ public class PathFinder : MonoBehaviour
                         neighbor.distanceTraveled = tentativeG;
                         neighbor.parentNode = currentNode;
                         frontier.Push(neighbor);
+                        if (neighbor != endNode)
+                            graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
+                        if (showSearchTree) DrawLine(currentNode, neighbor);
                         //visited.Add(neighbor);
                     }
                 }
@@ -667,7 +674,7 @@ public class PathFinder : MonoBehaviour
                 hasCompleted = true;
                 yield break;
             }
-            
+
             threshold = minThreshold;
         }
     }
@@ -749,7 +756,7 @@ public class PathFinder : MonoBehaviour
         bool found = false;
         HashSet<Node> visited = new HashSet<Node>();
         Stack<Node> frontier = new Stack<Node>();
-       
+
         while (!found)
         {
             // Reset visited and parent nodes for each iteration
@@ -759,17 +766,17 @@ public class PathFinder : MonoBehaviour
             frontier.Push(startNode);
             startNode.parentNode = null;
             visited.Add(startNode);
-            
+
             // Perform depth-limited DFS
             while (frontier.Count > 0 && !found)
             {
                 Node currentNode = frontier.Pop();
                 numOfNodesExplored++;
-                
+
                 // Color the visited nodes
                 if (currentNode != startNode && currentNode != endNode)
                     graphController.ColorNode(currentNode.graphPosition, graphController.visitedTileSprite);
-                
+
                 if (currentNode == endNode)
                 {
                     found = true;
@@ -777,7 +784,7 @@ public class PathFinder : MonoBehaviour
                     Node pathNode = endNode.parentNode;
                     path.Add(endNode);
                     totalCost += graphController.GetNodeDistance(pathNode, endNode);
-                    
+
                     while (pathNode != null && pathNode != startNode)
                     {
                         totalCost += graphController.GetNodeDistance(pathNode.parentNode, pathNode);
@@ -786,13 +793,13 @@ public class PathFinder : MonoBehaviour
                         pathNode = pathNode.parentNode;
                         yield return new WaitForSeconds(delayForEachIteration);
                     }
-                    
+
                     path.Add(startNode);
                     DrawPathLine(path);
                     hasCompleted = true;
                     yield break;
                 }
-                
+
                 // Only explore neighbors if we haven't reached depth limit
                 if (GetNodeDepth(currentNode) < depthLimit)
                 {
@@ -801,21 +808,22 @@ public class PathFinder : MonoBehaviour
                         if (!visited.Contains(neighbor) && neighbor.isPassable)
                         {
                             frontier.Push(neighbor);
+
                             neighbor.parentNode = currentNode;
                             visited.Add(neighbor);
-                            
+                            if (showSearchTree) DrawLine(currentNode, neighbor);
                             // Color the frontier nodes
                             if (neighbor != endNode)
                                 graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
                         }
                     }
                 }
-                
+
                 yield return new WaitForSeconds(delayForEachIteration);
             }
 
             depthLimit++;
-            
+
             // Safety check to prevent infinite loop
             if (depthLimit > 62)
             {
@@ -848,7 +856,7 @@ public class PathFinder : MonoBehaviour
             while (frontier.Count > 0 && !found)
             {
                 Node currentNode = frontier.Pop();
-                
+
                 if (currentNode == endNode)
                 {
                     found = true;
@@ -856,7 +864,7 @@ public class PathFinder : MonoBehaviour
                     memoryUsage = System.GC.GetTotalMemory(false) - memBefore;
                     yield break;
                 }
-                
+
                 if (GetNodeDepth(currentNode) < depthLimit)
                 {
                     foreach (Node neighbor in graphController.GetNeighbors(currentNode))
@@ -912,6 +920,7 @@ public class PathFinder : MonoBehaviour
                     {
                         parentStart[neighbor] = currentStart;
                         frontierStart.Enqueue(neighbor);
+                        if (showSearchTree) DrawLine(currentStart, neighbor);
                         if (neighbor != endNode)
                             graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
                     }
@@ -936,6 +945,7 @@ public class PathFinder : MonoBehaviour
                     {
                         parentEnd[neighbor] = currentEnd;
                         frontierEnd.Enqueue(neighbor);
+                        if (showSearchTree) DrawLine(currentEnd, neighbor);
                         if (neighbor != startNode)
                             graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
                     }
@@ -947,7 +957,7 @@ public class PathFinder : MonoBehaviour
                 }
             }
 
-            numOfNodesExplored+= 2;
+            numOfNodesExplored += 2;
             yield return new WaitForSeconds(delayForEachIteration);
         }
 
@@ -1069,6 +1079,7 @@ public class PathFinder : MonoBehaviour
         totalCost = 0;
         processingTime = 0f;
         memoryUsage = 0;
+        foreach (Transform child in searchTree.transform) Destroy(child.gameObject);
     }
 
     private void DrawPathLine(List<Node> path)
@@ -1082,6 +1093,21 @@ public class PathFinder : MonoBehaviour
         }
         lineRenderer.positionCount = positions.Length;
         lineRenderer.SetPositions(positions);
+    }
+
+    private void DrawLine(Node startNode, Node endNode)
+    {
+        GameObject branchObj = new GameObject("Branch");
+        branchObj.transform.SetParent(searchTree.transform);
+        LineRenderer branchRenderer = branchObj.AddComponent<LineRenderer>();
+        branchRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        branchRenderer.startWidth = 0.1f;
+        branchRenderer.sortingOrder = 10;
+        Vector3 startWorldPos = graphController.currentTilemap.GetCellCenterWorld((Vector3Int)(graphController.gridLowerBound + startNode.graphPosition));
+        Vector3 endWorldPos = graphController.currentTilemap.GetCellCenterWorld((Vector3Int)(graphController.gridLowerBound + endNode.graphPosition));
+        branchRenderer.positionCount = 2;
+        branchRenderer.SetPosition(0, startWorldPos);
+        branchRenderer.SetPosition(1, endWorldPos);
     }
 
     private int GetNodeDepth(Node node)

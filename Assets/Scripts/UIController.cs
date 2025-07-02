@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System;
 using DG.Tweening;
+using System;
 public class UIController : MonoBehaviour
 {
     [SerializeField] private Button resetButton;
@@ -14,10 +14,13 @@ public class UIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI delayForEachIterationText;
     [SerializeField] private Slider delayForEachIterationSlider;
     [SerializeField] private TMP_Dropdown algorithmDropdown;
-
     [SerializeField] private TMP_Dropdown mazeDropdown;
     [SerializeField] private AudioClip buttonClickSound;
     [SerializeField] private GameObject popupPrefab;
+    [SerializeField] private GameObject settingsDialog;
+    [SerializeField] private Toggle showSearchTreeToggle;
+    [SerializeField] private Button closeDialogButton;
+    [SerializeField] private Button openDialogButton;
     PathFinder pathFinder;
     GraphController graphController;
     PathfindingAlgo pathfindingAlgo;
@@ -25,12 +28,33 @@ public class UIController : MonoBehaviour
     private void Awake()
     {
         resetButton.onClick.AddListener(OnResetButtonClicked);
+        closeDialogButton.onClick.AddListener(OnCloseDialogButtonClicked);
         visualizeButton.onClick.AddListener(OnVisualizeButtonClicked);
         algorithmDropdown.onValueChanged.AddListener(OnAlgorithmDropdownSelected);
         mazeDropdown.onValueChanged.AddListener(OnMazeDropdownSelected);
         delayForEachIterationSlider.onValueChanged.AddListener(OnDelayForEachIterationChanged);
+        showSearchTreeToggle.onValueChanged.AddListener(OnShowSearchTreeToggleChanged);
+        openDialogButton.onClick.AddListener(OnOpenDialogButtonClicked);
         pathFinder = FindFirstObjectByType<PathFinder>();
         graphController = FindFirstObjectByType<GraphController>();
+        pathFinder.showSearchTree = showSearchTreeToggle.isOn;
+    }
+
+    private void OnOpenDialogButtonClicked()
+    {
+        AudioSource.PlayClipAtPoint(buttonClickSound, Camera.main.transform.position);
+        settingsDialog.SetActive(true);
+    }
+
+    private void OnShowSearchTreeToggleChanged(bool isOn)
+    {
+        pathFinder.showSearchTree = isOn;
+    }
+
+    private void OnCloseDialogButtonClicked()
+    {
+        AudioSource.PlayClipAtPoint(buttonClickSound, Camera.main.transform.position);
+        settingsDialog.SetActive(false);
     }
 
     private void OnDelayForEachIterationChanged(float val)
