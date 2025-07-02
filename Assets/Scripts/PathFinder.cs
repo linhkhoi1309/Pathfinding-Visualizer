@@ -29,7 +29,7 @@ public class PathFinder : MonoBehaviour
     [HideInInspector] public float totalCost = 0;
     [HideInInspector] public float processingTime = 0f;
     [HideInInspector] public int memoryUsage = 0;
-    [HideInInspector] public int maxNumInFrontier = 0; 
+    [HideInInspector] public int maxNumInFrontier = 0;
     [HideInInspector] public bool showSearchTree;
     public GameObject searchTree;
     private UIController uiController;
@@ -417,12 +417,16 @@ public class PathFinder : MonoBehaviour
 
                     if (float.IsPositiveInfinity(neighbor.distanceTraveled) || newDistanceTraveled < neighbor.distanceTraveled)
                     {
-                        neighbor.parentNode = currentNode;
                         neighbor.distanceTraveled = newDistanceTraveled;
+                        neighbor.parentNode = currentNode;
+                    }
+
+                    if (!frontier.Contains(neighbor))
+                    {
                         float distanceToEndNode = graphController.GetNodeDistance(neighbor, endNode);
                         neighbor.priority = neighbor.distanceTraveled + distanceToEndNode;
-                        if (showSearchTree) DrawLine(currentNode, neighbor);
                         frontier.Enqueue(neighbor);
+                        if (showSearchTree) DrawLine(currentNode, neighbor);
                         memoryUsage = Mathf.Max(memoryUsage, frontier.Count);
                         if (neighbor != endNode)
                             graphController.ColorNode(neighbor.graphPosition, graphController.frontierTileSprite);
@@ -463,6 +467,10 @@ public class PathFinder : MonoBehaviour
                     {
                         neighbor.parentNode = currentNode;
                         neighbor.distanceTraveled = newDistanceTraveled;
+                    }
+
+                    if(!frontier.Contains(neighbor))
+                    {
                         float distanceToEndNode = graphController.GetNodeDistance(neighbor, endNode);
                         neighbor.priority = neighbor.distanceTraveled + distanceToEndNode;
                         frontier.Enqueue(neighbor);
@@ -516,14 +524,13 @@ public class PathFinder : MonoBehaviour
 
             foreach (Node neighbor in graphController.GetNeighbors(currentNode))
             {
-                if (!visited.Contains(neighbor) && neighbor.isPassable)
+                if (!visited.Contains(neighbor) && neighbor.isPassable && !frontier.Contains(neighbor))
                 {
                     if (showSearchTree) DrawLine(currentNode, neighbor);
+                    
                     neighbor.parentNode = currentNode;
-
                     // Heuristic only (Greedy Best-First Search)
                     neighbor.priority = graphController.GetNodeDistance(neighbor, endNode);
-
                     frontier.Enqueue(neighbor);
                     memoryUsage = Mathf.Max(memoryUsage, frontier.Count);
 
@@ -559,7 +566,7 @@ public class PathFinder : MonoBehaviour
             visited.Add(currentNode);
             foreach (Node neighbor in graphController.GetNeighbors(currentNode))
             {
-                if (!visited.Contains(neighbor) && neighbor.isPassable)
+                if (!visited.Contains(neighbor) && neighbor.isPassable && !frontier.Contains(neighbor))
                 {
                     neighbor.parentNode = currentNode;
 
@@ -1110,7 +1117,7 @@ public class PathFinder : MonoBehaviour
         arrowRenderer.positionCount = 3;
         arrowRenderer.SetPosition(0, arrowPoint1);
         arrowRenderer.SetPosition(1, endWorldPos);
-        arrowRenderer.SetPosition(2, arrowPoint2);  
+        arrowRenderer.SetPosition(2, arrowPoint2);
     }
 
     private int GetNodeDepth(Node node)
