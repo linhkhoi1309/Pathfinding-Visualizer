@@ -29,6 +29,7 @@ public class PathFinder : MonoBehaviour
     [HideInInspector] public float totalCost = 0;
     [HideInInspector] public float processingTime = 0f;
     [HideInInspector] public long memoryUsage = 0;
+    [HideInInspector] public int maxNumInFrontier = 0; 
     public GameObject searchTree;
     private UIController uiController;
     public bool showSearchTree;
@@ -1108,6 +1109,23 @@ public class PathFinder : MonoBehaviour
         branchRenderer.positionCount = 2;
         branchRenderer.SetPosition(0, startWorldPos);
         branchRenderer.SetPosition(1, endWorldPos);
+
+        float arrowSize = 0.2f; // Adjust the size of the arrow head
+        Vector2 direction = endWorldPos - startWorldPos;
+        Vector2 midWorldPos = (startWorldPos + endWorldPos) / 2;
+        Vector2 arrowPoint1 = midWorldPos - new Vector2(-direction.y, direction.x).normalized * arrowSize;
+        Vector2 arrowPoint2 = midWorldPos + new Vector2(-direction.y, direction.x).normalized * arrowSize;
+
+        GameObject arrowHead = new GameObject("ArrowHead");
+        arrowHead.transform.SetParent(branchObj.transform);
+        LineRenderer arrowRenderer = arrowHead.AddComponent<LineRenderer>();
+        arrowRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        arrowRenderer.startWidth = 0.1f;
+        arrowRenderer.sortingOrder = 10;
+        arrowRenderer.positionCount = 3;
+        arrowRenderer.SetPosition(0, arrowPoint1);
+        arrowRenderer.SetPosition(1, endWorldPos);
+        arrowRenderer.SetPosition(2, arrowPoint2);  
     }
 
     private int GetNodeDepth(Node node)
